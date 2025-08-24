@@ -1,0 +1,25 @@
+{
+  "name": "lisa-games-backend",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "main": "server.ts",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "ts-node server.ts",
+    "build": "tsc --project tsconfig.server.json"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "cors": "^2.8.5",
+    "@supabase/supabase-js": "^2.39.7",
+    "node-fetch": "^2.6.13"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/cors": "^2.8.19",
+    "@types/node-fetch": "^2.6.13",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.2.2"
+  }
+}
