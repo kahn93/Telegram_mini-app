@@ -11,9 +11,9 @@ services:
     plan: free
     envVars:
       - key: VITE_SUPABASE_URL
-        sync: false
+        value: https://pklvbpngamcbhsaxmlgn.supabase.co
       - key: VITE_SUPABASE_ANON_KEY
-        sync: false
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrbHZicG5nYW1jYmhzYXhtbGduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU5MzE2NTEsImV4cCI6MjA3MTUwNzY1MX0.DcbX79sJg0aPGuCdGJCcCl9qoPWP4kM1E5GvO0SLeNQ
       - key: VITE_TON_API_KEY
         sync: false
       - key: VITE_TELEGRAM_BOT_TOKEN
