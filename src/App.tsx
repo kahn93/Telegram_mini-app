@@ -431,6 +431,7 @@ function App() {
     );
       case 'Arcade':
         return <Arcade
+          userId={userId}
           coinBalance={coinCount}
           onDeposit={(amount) => setCoinCount((prev) => prev + amount)}
           onWithdraw={(amount) => setCoinCount((prev) => Math.max(0, prev - amount))}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './GameStyles.css';
+import { submitScoreSupabase } from './leaderboardSupabase';
 
 // Lightweight Tetris mini-game
 const ROWS = 16, COLS = 10;
@@ -18,7 +19,7 @@ function randomShape() {
   return { shape, x: 3, y: 0 };
 }
 
-const Tetris: React.FC<{ onScore: (score: number) => void }> = ({ onScore }) => {
+const Tetris: React.FC<{ userid?: string }> = ({ userid }) => {
   const [board, setBoard] = useState(Array.from({ length: ROWS }, () => Array(COLS).fill(0)));
   const [current, setCurrent] = useState(randomShape());
   const [score, setScore] = useState(0);
@@ -88,12 +89,12 @@ const Tetris: React.FC<{ onScore: (score: number) => void }> = ({ onScore }) => 
     return () => clearInterval(interval);
   }, [current, board, gameOver, canMove]);
 
-  // Submit score to leaderboard on game over
+  // Submit score to Supabase leaderboard on game over
   useEffect(() => {
-    if (gameOver && score > 0) {
-      onScore(score);
+    if (gameOver && score > 0 && userid) {
+      submitScoreSupabase('Tetris', userid, score);
     }
-  }, [gameOver, score, onScore]);
+  }, [gameOver, score, userid]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {

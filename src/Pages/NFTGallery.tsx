@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { getUserNFTs, mintNFT, NFT } from '../Database/nftsSupabase';
+import { uploadToStorage, getPublicUrl } from '../Database/storageSupabase';
 
 const NFTGallery: React.FC<{ userId: string }> = ({ userId }) => {
   const [nfts, setNfts] = useState<NFT[]>([]);
@@ -8,6 +9,8 @@ const NFTGallery: React.FC<{ userId: string }> = ({ userId }) => {
   const [name, setName] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [desc, setDesc] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     getUserNFTs(userId).then(data => {
@@ -17,10 +20,24 @@ const NFTGallery: React.FC<{ userId: string }> = ({ userId }) => {
   }, [userId, minting]);
 
   const handleMint = async () => {
-    if (!name || !imageUrl) return;
+    if (!name || (!imageUrl && !imageFile)) return;
     setMinting(true);
-    await mintNFT({ userid: userId, nft_id: Date.now().toString(), name, image_url: imageUrl, description: desc });
-    setName(''); setImageUrl(''); setDesc('');
+    let finalImageUrl = imageUrl;
+    if (imageFile) {
+      const ext = imageFile.name.split('.').pop() || 'png';
+      const path = `nfts/${userId}_${Date.now()}.${ext}`;
+      const { error } = await uploadToStorage('nfts', path, imageFile);
+      if (!error) {
+        finalImageUrl = getPublicUrl('nfts', path);
+      } else {
+        alert('Failed to upload NFT image.');
+        setMinting(false);
+        return;
+      }
+    }
+    await mintNFT({ userid: userId, nft_id: Date.now().toString(), name, image_url: finalImageUrl, description: desc });
+    setName(''); setImageUrl(''); setDesc(''); setImageFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
     setMinting(false);
   };
 
@@ -40,10 +57,11 @@ const NFTGallery: React.FC<{ userId: string }> = ({ userId }) => {
       )}
       <div style={{ marginTop: 16, borderTop: '1px solid #eee', paddingTop: 12 }}>
         <h4 style={{ fontSize: 14, color: '#24308a', marginBottom: 6 }}>Mint New NFT</h4>
-        <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={{ borderRadius: 4, padding: 4, marginBottom: 4, width: '100%' }} />
-        <input value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="Image URL" style={{ borderRadius: 4, padding: 4, marginBottom: 4, width: '100%' }} />
-        <input value={desc} onChange={e => setDesc(e.target.value)} placeholder="Description" style={{ borderRadius: 4, padding: 4, marginBottom: 4, width: '100%' }} />
-        <button onClick={handleMint} disabled={minting || !name || !imageUrl} style={{ background: '#ffe259', borderRadius: 6, padding: '4px 16px', fontWeight: 700, width: '100%' }}>Mint NFT</button>
+  <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={{ borderRadius: 4, padding: 4, marginBottom: 4, width: '100%' }} />
+  <input value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="Image URL (or upload below)" style={{ borderRadius: 4, padding: 4, marginBottom: 4, width: '100%' }} />
+  <input type="file" accept="image/*" ref={fileInputRef} onChange={e => setImageFile(e.target.files?.[0] || null)} style={{ marginBottom: 4, width: '100%' }} />
+  <input value={desc} onChange={e => setDesc(e.target.value)} placeholder="Description" style={{ borderRadius: 4, padding: 4, marginBottom: 4, width: '100%' }} />
+  <button onClick={handleMint} disabled={minting || !name || (!imageUrl && !imageFile)} style={{ background: '#ffe259', borderRadius: 6, padding: '4px 16px', fontWeight: 700, width: '100%' }}>Mint NFT</button>
       </div>
     </div>
   );

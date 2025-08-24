@@ -197,7 +197,28 @@ const Shop: React.FC<ShopProps> = ({ onPurchase, purchased }) => {
 								))}
 							</ul>
 						</div>
-				<TonConnectButton style={{ marginTop: 40 }} />
+							<TonConnectButton style={{ marginTop: 40 }} />
+							<a
+								href="https://t.me/LisaToken_bot?game=Lisa"
+								target="_blank"
+								rel="noopener noreferrer"
+								style={{
+									display: 'block',
+									margin: '24px auto 0',
+									background: '#0088cc',
+									color: '#fff',
+									fontWeight: 700,
+									borderRadius: 8,
+									padding: '10px 24px',
+									textAlign: 'center',
+									textDecoration: 'none',
+									boxShadow: '0 2px 8px #24308a22',
+									fontSize: 16,
+									letterSpacing: 1
+								}}
+							>
+								Play on Telegram
+							</a>
 						{txStatus && (
 							<div style={{
 								marginTop: 24,

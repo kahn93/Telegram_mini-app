@@ -49,14 +49,16 @@ function checkWin(reels: SlotSymbol[][]) {
   return { win, winLines };
 }
 
-const SlotMachine: React.FC<{
-  playerName: string;
+interface SlotMachineProps {
+  userId: string;
   coinBalance: number;
   onDeposit: (amount: number) => void;
   onWithdraw: (amount: number) => void;
   onScore: (score: number) => void;
   onBack: () => void;
-}> = ({ playerName, coinBalance, onDeposit, onWithdraw, onScore, onBack }) => {
+}
+
+const SlotMachine: React.FC<SlotMachineProps> = ({ userId, coinBalance, onDeposit, onWithdraw, onScore, onBack }) => {
   const [reels, setReels] = useState(getInitialReels());
   const [spinning, setSpinning] = useState(false);
   const [message, setMessage] = useState('');
@@ -225,7 +227,7 @@ const SlotMachine: React.FC<{
       <button onClick={onBack} style={{ position: 'absolute', left: 16, top: 16, background: '#fff', color: '#f39c12', border: 'none', borderRadius: 8, padding: '2px 10px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 0 4px #000' }}>← Back</button>
       <h2 style={{ color: '#f39c12', textShadow: '0 0 8px #fff' }}>🎰 Slot Machine</h2>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-        <span style={{ fontWeight: 600, color: '#fff' }}>Player:</span> <span style={{ marginLeft: 8, color: '#f9e79f' }}>{playerName}</span>
+        <span style={{ fontWeight: 600, color: '#fff' }}>User ID:</span> <span style={{ marginLeft: 8, color: '#f9e79f' }}>{userId}</span>
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
         <span style={{ fontWeight: 600, color: '#fff' }}>Balance:</span> <span style={{ marginLeft: 8, color: '#00ff99' }}>{coinBalance}</span>

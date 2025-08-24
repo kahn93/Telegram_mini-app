@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import './GameStyles.css';
+import { submitScoreSupabase } from './leaderboardSupabase';
 
 // Lightweight Plinko mini-game
 const ROWS = 8, COLS = 7;
 
-const Plinko: React.FC<{ onScore: (score: number) => void }> = ({ onScore }) => {
+const Plinko: React.FC<{ userid?: string }> = ({ userid }) => {
   const [ballCol, setBallCol] = useState(Math.floor(COLS / 2));
   const [row, setRow] = useState(0);
   const [score, setScore] = useState(0);
@@ -37,12 +38,12 @@ const Plinko: React.FC<{ onScore: (score: number) => void }> = ({ onScore }) => 
     setGameOver(true);
   };
 
-  // Submit score to leaderboard on game over
+  // Submit score to Supabase leaderboard on game over
   React.useEffect(() => {
-    if (gameOver && score > 0) {
-      onScore(score);
+    if (gameOver && score > 0 && userid) {
+      submitScoreSupabase('Plinko', userid, score);
     }
-  }, [gameOver, score, onScore]);
+  }, [gameOver, score, userid]);
 
   // Render pegs in a triangle pattern
   const renderPegs = () => {

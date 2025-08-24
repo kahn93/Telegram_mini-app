@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './GameStyles.css';
+import { submitScoreSupabase } from './leaderboardSupabase';
 
 // Lightweight Pacman implementation (simplified for mini-game)
 const GRID_SIZE = 10;
@@ -11,7 +12,7 @@ function getIndex(x: number, y: number) {
   return y * GRID_SIZE + x;
 }
 
-const Pacman: React.FC<{ onScore: (score: number) => void }> = ({ onScore }) => {
+const Pacman: React.FC<{ userid?: string }> = ({ userid }) => {
   const [pacman, setPacman] = useState(INITIAL_PACMAN);
   const [ghost, setGhost] = useState(INITIAL_GHOST);
   const [dots, setDots] = useState(DOTS);
@@ -85,12 +86,12 @@ const Pacman: React.FC<{ onScore: (score: number) => void }> = ({ onScore }) => 
     }
   }, [pacman, ghost, dots, score]);
 
-  // Submit score to leaderboard on game over
+  // Submit score to Supabase leaderboard on game over
   useEffect(() => {
-    if (gameOver && finalScore > 0) {
-      onScore(finalScore);
+    if (gameOver && finalScore > 0 && userid) {
+      submitScoreSupabase('Pacman', userid, finalScore);
     }
-  }, [gameOver, finalScore, onScore]);
+  }, [gameOver, finalScore, userid]);
 
   return (
     <div className="arcade-game">

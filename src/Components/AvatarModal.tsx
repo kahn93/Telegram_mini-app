@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { uploadToStorage, getPublicUrl } from '../Database/storageSupabase';
 import styles from '../App.module.scss';
 
 interface AvatarModalProps {
@@ -20,16 +21,20 @@ const AvatarModal: React.FC<AvatarModalProps> = ({ isOpen, onClose, onAvatarChan
   const fileInput = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        if (typeof ev.target?.result === 'string') {
-          setSelected(ev.target.result);
-        }
-      };
-      reader.readAsDataURL(file);
+      // Upload to Supabase Storage
+      const userId = localStorage.getItem('userId') || 'anon';
+      const ext = file.name.split('.').pop() || 'png';
+      const path = `avatars/${userId}_${Date.now()}.${ext}`;
+      const { error } = await uploadToStorage('avatars', path, file);
+      if (!error) {
+        const publicUrl = getPublicUrl('avatars', path);
+        setSelected(publicUrl);
+      } else {
+        alert('Failed to upload avatar.');
+      }
     }
   };
 

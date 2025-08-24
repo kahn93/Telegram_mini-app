@@ -15,29 +15,37 @@ import ArcadePlinko from './ArcadePlinko';
 import ArcadeSlotMachine from './ArcadeSlotMachine';
 
 
-const Arcade: React.FC<{ coinBalance?: number; onDeposit?: (amount: number) => void; onWithdraw?: (amount: number) => void; onScore?: (score: number) => void; }> = (props) => {
-	const [playerName, setPlayerName] = useState('Player' + Math.floor(Math.random() * 1000));
+interface ArcadeProps {
+	userId: string;
+	coinBalance?: number;
+	onDeposit?: (amount: number) => void;
+	onWithdraw?: (amount: number) => void;
+	onScore?: (score: number) => void;
+}
+
+const Arcade: React.FC<ArcadeProps> = (props) => {
+	const { userId } = props;
 	const [selectedGame, setSelectedGame] = useState<null | 'Pacman' | 'Asteroids' | 'Tetris' | 'Plinko' | 'SlotMachine' | 'MemoryMatch'>(null);
 
-		if (selectedGame === 'Pacman')
-			return <ArcadePacman onBack={() => setSelectedGame(null)} playerName={playerName} />;
-		if (selectedGame === 'Asteroids')
-			return <ArcadeAsteroids onBack={() => setSelectedGame(null)} playerName={playerName} />;
-		if (selectedGame === 'Tetris')
-			return <ArcadeTetris onBack={() => setSelectedGame(null)} playerName={playerName} />;
-		if (selectedGame === 'Plinko')
-			return <ArcadePlinko onBack={() => setSelectedGame(null)} playerName={playerName} />;
-		if (selectedGame === 'SlotMachine')
-			return <ArcadeSlotMachine
-				playerName={playerName}
-				coinBalance={props.coinBalance || 0}
-				onDeposit={props.onDeposit || (() => {})}
-				onWithdraw={props.onWithdraw || (() => {})}
-				onScore={props.onScore || (() => {})}
-				onBack={() => setSelectedGame(null)}
-			/>;
-		if (selectedGame === 'MemoryMatch')
-			return <MemoryMatch onScore={props.onScore || (() => {})} />;
+	if (selectedGame === 'Pacman')
+		return <ArcadePacman onBack={() => setSelectedGame(null)} userId={userId} />;
+	if (selectedGame === 'Asteroids')
+		return <ArcadeAsteroids onBack={() => setSelectedGame(null)} userId={userId} />;
+	if (selectedGame === 'Tetris')
+		return <ArcadeTetris onBack={() => setSelectedGame(null)} userId={userId} />;
+	if (selectedGame === 'Plinko')
+		return <ArcadePlinko onBack={() => setSelectedGame(null)} userId={userId} />;
+	if (selectedGame === 'SlotMachine')
+		return <ArcadeSlotMachine
+			userId={userId}
+			coinBalance={props.coinBalance || 0}
+			onDeposit={props.onDeposit || (() => {})}
+			onWithdraw={props.onWithdraw || (() => {})}
+			onScore={props.onScore || (() => {})}
+			onBack={() => setSelectedGame(null)}
+		/>;
+	if (selectedGame === 'MemoryMatch')
+		return <MemoryMatch onScore={props.onScore || (() => {})} />;
 
 		// Example seasonal event (can be made dynamic)
 		const isEventActive = true;
@@ -53,11 +61,7 @@ const Arcade: React.FC<{ coinBalance?: number; onDeposit?: (amount: number) => v
 						<div style={{ fontSize: 13, fontWeight: 400 }}>{eventDesc}</div>
 					</div>
 				)}
-				<div style={{ marginBottom: 12 }}>
-					<label style={{ color: '#fff' }}>
-						Your Name: <input value={playerName} onChange={e => setPlayerName(e.target.value)} style={{ borderRadius: 4, padding: 2 }} />
-					</label>
-				</div>
+				   {/* UserId is now wired from App, no need for name input */}
 				<div style={{ display: 'flex', flexWrap: 'wrap', gap: 32, justifyContent: 'center' }}>
 				<button
 					className="arcade-game"

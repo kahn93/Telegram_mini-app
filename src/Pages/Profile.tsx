@@ -11,7 +11,7 @@ import moneyIcon from '../assets/money.png';
 
 const AVATAR_OPTIONS = [
   { src: '/vite.svg', label: 'Default' },
-  { src: tgIcon, label: 'Telegram' },
+  { src: tgIcon, label: 'Telegram', link: 'https://t.me/LisaToken_bot?game=Lisa' },
   { src: crownIcon, label: 'Crown' },
   { src: giftIcon, label: 'Gift' },
   { src: axsIcon, label: 'AXS' },

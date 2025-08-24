@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './GameStyles.css';
+import { submitScoreSupabase } from './leaderboardSupabase';
 
 // Lightweight Asteroids mini-game
 const WIDTH = 200, HEIGHT = 200;
@@ -15,7 +16,7 @@ function randomAsteroid() {
   };
 }
 
-const Asteroids: React.FC<{ onScore: (score: number) => void }> = ({ onScore }) => {
+const Asteroids: React.FC<{ userid?: string }> = ({ userid }) => {
   const [ship, setShip] = useState({ x: WIDTH / 2, y: HEIGHT / 2, angle: 0 });
   const [asteroids, setAsteroids] = useState(Array.from({ length: ASTEROID_COUNT }, randomAsteroid));
   const [score, setScore] = useState(0);
@@ -78,12 +79,12 @@ const Asteroids: React.FC<{ onScore: (score: number) => void }> = ({ onScore }) 
     setScore((s) => s + 1);
   }, [asteroids, gameOver]);
 
-  // Submit score to leaderboard on game over
+  // Submit score to Supabase leaderboard on game over
   useEffect(() => {
-    if (gameOver && score > 0) {
-      onScore(score);
+    if (gameOver && score > 0 && userid) {
+      submitScoreSupabase('Asteroids', userid, score);
     }
-  }, [gameOver, score, onScore]);
+  }, [gameOver, score, userid]);
 
   return (
     <div className="arcade-game">
