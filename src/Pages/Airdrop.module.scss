@@ -1,0 +1,200 @@
+.airdropBg {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+}
+
+.airdropContainer {
+  width: 100%;
+  max-width: 540px;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 6px 32px #24308a22;
+  padding: 36px 24px 32px 24px;
+  margin: 40px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.headerSection {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.headerIcon {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 8px;
+  animation: pop 1.2s cubic-bezier(.5,1.8,.5,1) infinite alternate;
+}
+@keyframes pop {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.08); }
+}
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #24308a;
+  margin-bottom: 4px;
+}
+.subtitle {
+  color: #444;
+  font-size: 1.08rem;
+  margin-bottom: 0;
+}
+.highlight {
+  color: #0098ea;
+  font-weight: 700;
+}
+.walletSection {
+  margin: 18px 0 28px 0;
+}
+.tonBtn {
+  background: linear-gradient(90deg, #0098ea 0%, #00e0ff 100%) !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+  border-radius: 12px !important;
+  padding: 12px 28px !important;
+  box-shadow: 0 2px 12px #0098ea33 !important;
+  border: none !important;
+  transition: background 0.2s;
+}
+.donateCard {
+  background: #f7f8fa;
+  border-radius: 16px;
+  box-shadow: 0 1px 8px #24308a10;
+  padding: 24px 18px 18px 18px;
+  margin-bottom: 32px;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.donateTitle {
+  display: flex;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #24308a;
+  margin-bottom: 6px;
+}
+.donateIcon {
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+}
+.donateDesc {
+  color: #666;
+  font-size: 1rem;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.inputRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.input {
+  font-size: 1rem;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #0098ea;
+  outline: none;
+  width: 120px;
+}
+.donateBtn {
+  background: linear-gradient(90deg, #ffe259 0%, #ffa751 100%);
+  color: #222;
+  font-weight: 700;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  cursor: pointer;
+  box-shadow: 0 1px 6px #ffe25955;
+  transition: background 0.2s;
+}
+.donateBtn:disabled {
+  background: #eee;
+  color: #aaa;
+  cursor: not-allowed;
+}
+.success {
+  color: #1bbf4c;
+  font-weight: 700;
+  margin-top: 8px;
+}
+.error {
+  color: #e23c3c;
+  font-weight: 700;
+  margin-top: 8px;
+}
+.effectsSection {
+  width: 100%;
+  margin-top: 18px;
+}
+.effectsTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #24308a;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.effectsGrid {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.effectCard {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 6px #24308a11;
+  padding: 16px 18px;
+  min-width: 120px;
+  max-width: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 8px;
+  transition: box-shadow 0.2s, transform 0.2s;
+  animation: fadeIn 0.7s;
+}
+.effectCard:hover {
+  box-shadow: 0 4px 18px #0098ea22;
+  transform: translateY(-4px) scale(1.04);
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+.effectIcon {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 6px;
+}
+.effectName {
+  font-weight: 700;
+  color: #0098ea;
+  margin-bottom: 2px;
+}
+.effectDesc {
+  color: #444;
+  font-size: 0.97rem;
+  text-align: center;
+}
+@media (max-width: 600px) {
+  .airdropContainer {
+    padding: 18px 4px 18px 4px;
+  }
+  .effectsGrid {
+    flex-direction: column;
+    align-items: center;
+  }
+}

@@ -1,4 +1,4 @@
-import { addUser } from './db';
+import { addUserSupabase } from './dbSupabase';
 import { countries } from './countries';
 
 const handles = [
@@ -113,7 +113,7 @@ const populateDB = async () => {
     const userId = handles[i];
     const country = countries[Math.floor(Math.random() * countries.length)];
     const coins = generateRandomScore();
-    await addUser({ userid: userId, country, coins });
+  await addUserSupabase({ userid: userId, country, coins });
   }
   console.log('Database populated with fake users');
 };

@@ -1,0 +1,77 @@
+.trophiesPage {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 32px 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+  border-radius: 20px;
+  box-shadow: 0 4px 32px #24308a11;
+}
+.trophiesTitle {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #24308a;
+  margin-bottom: 24px;
+}
+.trophyList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: center;
+}
+.trophyCard {
+  background: rgba(255,255,255,0.13);
+  border-radius: 10px;
+  box-shadow: 0 1px 4px #24308a10;
+  padding: 7px 4px 7px 4px;
+  min-width: 64px;
+  max-width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.14s, transform 0.14s;
+  animation: fadeInTrophy 0.7s;
+  position: relative;
+}
+.trophyCard.earned {
+  border: 2px solid #ffe259;
+  box-shadow: 0 4px 18px #ffe25955;
+  background: rgba(255,255,255,0.35);
+}
+.trophyIcon {
+  width: 22px;
+  height: 22px;
+  margin-bottom: 3px;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 1px 2px #24308a11;
+}
+.trophyName {
+  font-size: 10px;
+  font-weight: 700;
+  color: #24308a;
+  margin-bottom: 1px;
+  text-align: center;
+}
+.trophyDesc {
+  color: #666;
+  font-size: 8px;
+  margin-bottom: 2px;
+  text-align: center;
+}
+.trophyReward {
+  color: #b88a00;
+  font-weight: 600;
+  font-size: 8px;
+  margin-bottom: 1px;
+}
+@keyframes fadeInTrophy {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+@media (max-width: 700px) {
+  .trophyList {
+    flex-direction: column;
+    align-items: center;
+  }
+}

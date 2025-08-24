@@ -1,20 +1,108 @@
 .leaderboard {
-  margin-top: 20px;
+  margin: 32px auto 80px auto;
   text-align: left;
-  margin-bottom: 112px;
-  max-width: 420px;
-}
+  max-width: 98vw;
+  width: 100%;
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(8px) saturate(1.2);
+  border: 1.5px solid rgba(36,48,138,0.10);
+  border-radius: 16px;
+  box-shadow: 0 4px 32px 0 rgba(25,34,89,0.10), 0 1.5px 8px 0 rgba(0,0,0,0.08);
+  padding: 24px 12px 12px 12px;
+  min-height: 320px;
+  max-height: 60vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #24308a #e0e0e0;
+  transition: box-shadow 0.2s;
+ 
+ 
 
 .leaderboard h2 {
   font-size: 24px;
+  text-align: center;
+  margin-bottom: 16px;
+  color: #24308a;
+  letter-spacing: 1px;
+  font-weight: 700;
+  text-shadow: 0 2px 8px #fff, 0 0 2px #fff;
 }
 
 .leaderboard ul {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .leaderboard li {
-  font-size: 18px;
-  margin: 5px 0;
+  font-size: 17px;
+  margin: 4px 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f7f8fa 80%, #e6eaff 100%);
+  box-shadow: 0 1px 4px rgba(36,48,138,0.04);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  animation: leaderboardFadeIn 0.7s ease forwards;
+  animation-delay: calc(var(--i, 0) * 0.02s);
+}
+.leaderboard li.top1 {
+  background: linear-gradient(90deg, #fffbe6 80%, #ffe259 100%);
+  color: #bfa100;
+  font-weight: 700;
+  box-shadow: 0 2px 12px #ffe25955;
+  transform: scale(1.04);
+  border: 2px solid #ffe259;
+}
+.leaderboard li.top2 {
+  background: linear-gradient(90deg, #f0f4ff 80%, #b4c9ff 100%);
+  color: #3a4ad9;
+  font-weight: 700;
+  box-shadow: 0 2px 12px #b4c9ff55;
+  transform: scale(1.03);
+  border: 2px solid #b4c9ff;
+}
+.leaderboard li.top3 {
+  background: linear-gradient(90deg, #fff3e6 80%, #ffa751 100%);
+  color: #ff6600;
+  font-weight: 700;
+  box-shadow: 0 2px 12px #ffa75155;
+  transform: scale(1.02);
+  border: 2px solid #ffa751;
+}
+@keyframes leaderboardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.leaderboard li:nth-child(odd) {
+  background: linear-gradient(90deg, #f7f8fa 80%, #f0f4ff 100%);
+}
+
+.leaderboard li:hover {
+  background: #e6eaff;
+  box-shadow: 0 2px 8px #24308a22;
+}
+
+/* Custom scrollbar for webkit browsers */
+.leaderboard::-webkit-scrollbar {
+  width: 8px;
+}
+.leaderboard::-webkit-scrollbar-thumb {
+  background: #24308a;
+  border-radius: 8px;
+}
+.leaderboard::-webkit-scrollbar-track {
+  background: #e0e0e0;
+  border-radius: 8px;
+}
 }

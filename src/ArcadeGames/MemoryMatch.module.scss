@@ -1,0 +1,32 @@
+.memoryMatchGame {
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px 12px 12px 12px;
+  box-shadow: 0 2px 8px #24308a11;
+  max-width: 340px;
+  margin: 0 auto 18px auto;
+  text-align: center;
+}
+.memoryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 44px);
+  grid-gap: 8px;
+  justify-content: center;
+  margin: 12px 0;
+}
+.memoryCard {
+  width: 44px;
+  height: 44px;
+  font-size: 1.5rem;
+  background: #ffe259;
+  border: 2px solid #eee;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 1px 4px #ffe25944;
+}
+.memoryCard:active, .flipped {
+  background: #fffbe6;
+  transform: scale(1.08);
+  border: 2px solid #b88a00;
+}

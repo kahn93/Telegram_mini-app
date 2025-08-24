@@ -1,0 +1,81 @@
+.upgradesPage {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 32px 16px;
+  background: rgba(255,255,255,0.98);
+  border-radius: 20px;
+  box-shadow: 0 4px 32px #24308a11;
+}
+
+.upgradeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px 1.5px;
+}
+
+// Smaller upgrade cards for better fit
+.upgradeCard {
+  background: #f7f8fa;
+  border-radius: 2px;
+  box-shadow: 0 1px 1px #24308a10;
+  padding: 1px 1px 1px 1px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.2s;
+  position: relative;
+  min-width: 0;
+}
+.upgradeCard:hover {
+  box-shadow: 0 4px 18px #24308a22;
+}
+.icon {
+  width: 8px;
+  height: 8px;
+  margin-bottom: 0.5px;
+  border-radius: 1.5px;
+  background: #fff;
+  box-shadow: 0 1px 1px #24308a11;
+}
+.title {
+  font-size: 0.33rem;
+  font-weight: 700;
+  color: #24308a;
+  margin-bottom: 0.2px;
+}
+.desc {
+  color: #666;
+  font-size: 0.28rem;
+  margin-bottom: 0.5px;
+  text-align: center;
+}
+.level, .value, .price {
+  font-size: 0.23rem;
+  margin-bottom: 0.2px;
+}
+.price {
+  color: #b88a00;
+  font-weight: 600;
+}
+.buyBtn {
+  margin-top: 0.5px;
+  padding: 1px 2px;
+  border-radius: 1.2px;
+  background: linear-gradient(90deg, #ffe259 0%, #ffa751 100%);
+  color: #222;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  font-size: 0.21rem;
+  transition: background 0.2s, color 0.2s;
+}
+.buyBtn:disabled {
+  background: #eee;
+  color: #aaa;
+  cursor: not-allowed;
+}
+@media (max-width: 900px) {
+  .upgradeGrid {
+    grid-template-columns: 1fr;
+  }
+}
