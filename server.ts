@@ -20,7 +20,7 @@ const supabase = createClient(
 
 
 // Health check
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
   res.send('Backend is running!');
 });
 
@@ -112,7 +112,7 @@ app.post('/webhook/notify', async (req, res) => {
 });
 
 // Example endpoint for your game (expand as needed)
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
