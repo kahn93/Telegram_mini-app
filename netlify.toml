@@ -1,14 +1,11 @@
-[build]
-  command = "yarn run build"
-  publish = "dist"
-
 [build.environment]
   NODE_VERSION = "22"
-  VITE_SUPABASE_URL = "${VITE_SUPABASE_URL}"
-  VITE_SUPABASE_ANON_KEY = "${VITE_SUPABASE_ANON_KEY}"
-  VITE_TON_API_KEY = "${VITE_TON_API_KEY}"
-  VITE_TELEGRAM_BOT_TOKEN = "${VITE_TELEGRAM_BOT_TOKEN}"
-  VITE_TON_WALLET_ADDRESS = "${VITE_TON_WALLET_ADDRESS}"
-  VITE_JETTON_MASTER_ADDRESS = "${VITE_JETTON_MASTER_ADDRESS}"
-  VITE_TELEGRAM_BOT_USERNAME = "${VITE_TELEGRAM_BOT_USERNAME}"
-  VITE_API_URL = "${VITE_API_URL}"
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
