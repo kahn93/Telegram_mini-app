@@ -5,34 +5,23 @@ import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
 import fetch from 'node-fetch';
 
-
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Minimal Express server for Render backend
- 
-import express from 'express';
-import cors from 'cors';
-import { createClient } from '@supabase/supabase-js';
-import fetch from 'node-fetch';
- 
-const app = express();
-const PORT = process.env.PORT || 8080;
- 
 app.use(cors());
 app.use(express.json());
- 
+
 // Supabase client
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL || '',
   process.env.VITE_SUPABASE_ANON_KEY || ''
 );
- 
+
 // Health check
 app.get('/', (_req, res) => {
   res.send('Backend is running!');
 });
- 
+
 // Telegram Bot Webhook
 app.post('/webhook/telegram', async (req, res) => {
   const update = req.body;
@@ -53,7 +42,7 @@ app.post('/webhook/telegram', async (req, res) => {
   }
   res.status(200).json({ ok: true });
 });
- 
+
 // TON Payment Webhook
 app.post('/webhook/ton', async (req, res) => {
   const payment = req.body;
@@ -63,7 +52,7 @@ app.post('/webhook/ton', async (req, res) => {
   }
   res.status(200).json({ ok: true });
 });
- 
+
 // Supabase Edge Function Webhook (for DB events)
 app.post('/webhook/supabase', async (req, res) => {
   const event = req.body;
@@ -71,7 +60,7 @@ app.post('/webhook/supabase', async (req, res) => {
   await supabase.from('event_logs').insert([{ event_type: event.type, payload: event }]);
   res.status(200).json({ ok: true });
 });
- 
+
 // Analytics/Referral Webhook
 app.post('/webhook/analytics', async (req, res) => {
   const analytics = req.body;
@@ -79,7 +68,7 @@ app.post('/webhook/analytics', async (req, res) => {
   await supabase.from('analytics').insert([analytics]);
   res.status(200).json({ ok: true });
 });
- 
+
 // Anti-Cheat Webhook
 app.post('/webhook/anticheat', async (req, res) => {
   const report = req.body;
@@ -87,7 +76,7 @@ app.post('/webhook/anticheat', async (req, res) => {
   await supabase.from('anticheat_reports').insert([report]);
   res.status(200).json({ ok: true });
 });
- 
+
 // NFT Mint/Transfer Webhook
 app.post('/webhook/nft', async (req, res) => {
   const nftEvent = req.body;
@@ -97,7 +86,7 @@ app.post('/webhook/nft', async (req, res) => {
   }
   res.status(200).json({ ok: true });
 });
- 
+
 // Third-Party Notification Webhook (e.g., Discord, Slack)
 app.post('/webhook/notify', async (req, res) => {
   const notification = req.body;
@@ -111,12 +100,12 @@ app.post('/webhook/notify', async (req, res) => {
   }
   res.status(200).json({ ok: true });
 });
- 
+
 // Example endpoint for your game (expand as needed)
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
- 
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
