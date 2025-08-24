@@ -23,6 +23,9 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    https: true
+    https: {
+      key: '', // path to your SSL key file, e.g. fs.readFileSync('./certs/key.pem')
+      cert: '', // path to your SSL cert file, e.g. fs.readFileSync('./certs/cert.pem')
+    },
   }
 });
