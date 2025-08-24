@@ -1,4 +1,5 @@
 import Marketplace from './Pages/Marketplace';
+import { triggerAnalytics } from './utils/webhooks';
 import { requestNotificationPermission, sendBrowserNotification } from './notifications';
 import { useState, useEffect, useCallback } from 'react';
 import { NotificationProvider } from './Components/NotificationProvider';
@@ -58,6 +59,17 @@ import { MAX_ENERGY, getInitialEnergy } from './Database/energyLogic';
 
 function App() {
 
+  // ...existing code...
+
+  // Example: Trigger anti-cheat event (replace with real logic)
+  // triggerAntiCheat(userId, 'suspicious_action');
+
+  // Example: Trigger NFT event (replace with real logic)
+  // triggerNFT('nft123', userId, 'mint');
+
+  // Example: Trigger notification event (replace with real logic)
+  // triggerNotify('You have a new reward!');
+
   // Trophy/achievement state
   const [trophiesEarned, setTrophiesEarned] = useState<Record<string, boolean>>(() => {
     try {
@@ -85,6 +97,12 @@ function App() {
   const [lastSavedCoin, setLastSavedCoin] = useState<number>(0);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [userId, setUserId] = useState<string>('');
+  // Example: Trigger analytics event after userId is set
+  useEffect(() => {
+    if (userId) {
+      triggerAnalytics('app_loaded', userId);
+    }
+  }, [userId]);
   const [currentView, setCurrentView] = useState<string>('coin');
   const [energy, setEnergy] = useState<number>(getInitialEnergy());
   // Shop state
