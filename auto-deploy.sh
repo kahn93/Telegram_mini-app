@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Full automation: build frontend, deploy to Netlify, deploy backend to Render, deploy all Supabase Edge Functions and triggers
 
 set -e
