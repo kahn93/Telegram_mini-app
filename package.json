@@ -1,7 +1,4 @@
 {
-  // Netlify: Set these environment variables in your Netlify dashboard for Supabase connection:
-  // VITE_SUPABASE_URL=https://pklvbpngamcbhsaxmlgn.supabase.co
-  // VITE_SUPABASE_ANON_KEY=[your anon/public key]
   "name": "Lisa Games",
   "private": true,
   "version": "0.0.1",
