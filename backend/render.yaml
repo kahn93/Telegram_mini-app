@@ -1,0 +1,28 @@
+# Render.com deployment configuration for Lisa Games backend
+# Place this file in your /backend directory
+
+services:
+  - type: web
+    name: lisa-games-backend
+    env: node
+    rootDir: .
+    buildCommand: npm run build
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+      - key: VITE_TON_API_KEY
+        sync: false
+      - key: VITE_TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: VITE_TON_WALLET_ADDRESS
+        sync: false
+      - key: VITE_JETTON_MASTER_ADDRESS
+        sync: false
+      - key: VITE_TELEGRAM_BOT_USERNAME
+        sync: false
+      - key: VITE_API_URL
+        sync: false

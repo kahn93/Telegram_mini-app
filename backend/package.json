@@ -2,10 +2,9 @@
   "name": "lisa-games-backend",
   "private": true,
   "version": "0.0.1",
-  "type": "module",
   "main": "server.ts",
   "scripts": {
-    "start": "node server.js",
+  "start": "node dist/server.js",
     "dev": "ts-node server.ts",
     "build": "tsc --project tsconfig.server.json"
   },
