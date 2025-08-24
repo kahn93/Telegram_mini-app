@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import * as React from 'react';
+import { useRef, useState } from 'react';
 import { uploadToStorage, getPublicUrl } from '../Database/storageSupabase';
 import styles from '../App.module.scss';
 
