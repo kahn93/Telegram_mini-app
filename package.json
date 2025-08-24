@@ -1,15 +1,15 @@
 {
-  "name": "hackton",
+  "name": "Lisa Games",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "start": "node dist/server.js",
     "start:dev": "ts-node server.ts",
-    "build": "vite build",
-    "preview": "vite preview --port 4173"
+    "build": "npm run build",
+    "preview": "npm run preview --port 4173"
   },
   "dependencies": {
     "@tonconnect/ui-react": "^2.2.0",
