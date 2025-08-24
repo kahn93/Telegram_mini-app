@@ -8,7 +8,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "start": "node dist/server.js",
     "start:dev": "ts-node server.ts",
-    "build": "tsc --project tsconfig.server.json && vite build",
+  "build": "vite build",
     "preview": "vite preview --port 4173"
   },
   "dependencies": {
