@@ -26,3 +26,5 @@ services:
         sync: false
       - key: VITE_API_URL
         sync: false
+      - key: DATABASE_URL
+        value: postgresql://postgres:[Anewlife@199376]@db.pklvbpngamcbhsaxmlgn.supabase.co:5432/postgres
