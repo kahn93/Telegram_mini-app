@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 
 import { logEvent } from '../analytics';
-import ewalletImg from '../assets/ewallet.png';
+import { guardianAngelAirdrop } from '../Database/edgeFunctions';
 import giftImg from '../assets/gift.png';
 import crownImg from '../assets/crown.png';
 import questImg from '../assets/quest.png';
@@ -39,9 +39,9 @@ const Airdrop: React.FC = () => {
 			});
 			setTxStatus('✅ Thank you for your donation!');
 			setAmount('');
-// 			notify({ message: 'Thank you for your donation!', type: 'success' });
-			// Log analytics event
+			// Log analytics event and backend airdrop
 			const userId = localStorage.getItem('userId') || 'unknown';
+			await guardianAngelAirdrop({ userId, amount: Number(amount) });
 			await logEvent(userId, 'airdrop_donation', { amountTon: Number(amount) });
 		} catch (e: unknown) {
 			let msg = 'Transaction cancelled or failed.';
@@ -64,9 +64,7 @@ const Airdrop: React.FC = () => {
 						</p>
 					</div>
 					<div className={styles.walletSection}>
-						<TonConnectButton className={styles.tonBtn} iconUrl={ewalletImg}>
-							Connect TON Wallet
-						</TonConnectButton>
+						<TonConnectButton className={styles.tonBtn} />
 					</div>
 					<div className={styles.donateCard}>
 						<div className={styles.donateTitle}>

@@ -1,0 +1,255 @@
+@import '../App.module.scss';
+
+ .shopContainer {
+   max-width: 420px;
+   margin: 8px auto 0 auto;
+   padding: 0;
+   background: transparent;
+   border-radius: 0;
+   box-shadow: none;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   animation: fadeInShop 0.7s;
+   min-height: 70vh;
+   position: relative;
+ }
+
+ .shopAbsoluteLayout {
+   position: relative;
+   width: 100%;
+   height: 100%;
+ }
+
+ .shopItemAbsolute {
+   position: absolute;
+   background: rgba(255,255,255,0.13);
+   border-radius: 10px;
+   box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08);
+   display: flex;
+   flex-direction: row;
+   align-items: center;
+   justify-content: space-between;
+   font-size: 0.9rem;
+   transition: box-shadow 0.2s, transform 0.2s;
+   animation: fadeInShop 0.7s;
+   box-sizing: border-box;
+   padding: 0.5vw 1vw;
+
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 98vw;
+  max-width: 600px;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  min-width: 320px;
+  min-height: 320px;
+  z-index: 2;
+}
+
+.shopItemAbsolute {
+  position: absolute;
+  background: rgba(255,255,255,0.13);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  transition: box-shadow 0.2s, transform 0.2s;
+  animation: fadeInShop 0.7s;
+  box-sizing: border-box;
+  padding: 0.5vw 1vw;
+
+}
+
+@keyframes fadeInShop {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+
+.shopSectionTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #24308a;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.shopGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 1vw 1vw;
+  width: 80vw;
+  height: 60vw;
+  max-width: 420px;
+  max-height: 320px;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  right: auto;
+  z-index: 1;
+  background: none;
+  box-sizing: border-box;
+}
+
+.shopItem {
+  background: rgba(255,255,255,0.13);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08);
+  padding: 0.5vw 1vw;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7vw;
+  min-width: 0;
+  width: 90%;
+  height: 70%;
+  font-size: 0.9rem;
+  transition: box-shadow 0.2s, transform 0.2s;
+  animation: fadeInShop 0.7s;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+.shopItem img {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: #fff;
+}
+.shopItemLabel {
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: center;
+}
+.shopItemDesc {
+  color: #888;
+  font-size: 0.85rem;
+  text-align: center;
+}
+.shopItemPrice {
+  font-weight: 700;
+  color: #24308a;
+  font-size: 0.95rem;
+}
+.shopBuyBtn {
+  padding: 4px 10px;
+  border-radius: 5px;
+  background: #ffe259;
+  color: #222;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  margin-top: 2px;
+  transition: background 0.15s, box-shadow 0.15s;
+  box-shadow: 0 0 0 2px #24308a33;
+}
+/* Sticky wallet and Telegram buttons at the bottom */
+.shopActions {
+  width: 340px;
+  max-width: 90vw;
+  margin: 0 auto;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 56px;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 1vw 0 0 0;
+  z-index: 102;
+}
+.shopActions .tc-connect-button, .shopActions button, .shopActions [class*="TonConnectButton"] {
+  font-size: 12px !important;
+  padding: 4px 12px !important;
+  min-width: 90px !important;
+  min-height: 26px !important;
+  border-radius: 7px !important;
+}
+.shopActions .tc-connect-button, .shopActions button, .shopActions [class*="TonConnectButton"] {
+  font-size: 13px !important;
+  padding: 6px 16px !important;
+  min-width: 120px !important;
+  min-height: 32px !important;
+  border-radius: 8px !important;
+}
+.shopBuyBtn:disabled {
+  background: #eee;
+  color: #aaa;
+  cursor: not-allowed;
+}
+@media (max-width: 600px) {
+  .shopContainer {
+    max-width: 99vw;
+    padding: 0;
+    border-radius: 0;
+  }
+  .shopGrid {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 1vw 1vw;
+    width: 80vw;
+    height: 60vw;
+    max-width: 340px;
+    max-height: 240px;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    right: auto;
+    z-index: 1;
+    background: none;
+    box-sizing: border-box;
+  }
+  .shopItem {
+    width: 90%;
+    height: 70%;
+    min-height: 0;
+    aspect-ratio: 6/1.2;
+    padding: 0.5vw 1vw;
+    font-size: 0.8rem;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+  .shopItem img {
+    width: 15px;
+    height: 15px;
+  }
+  .shopItemLabel, .shopItemPrice {
+    font-size: 0.89rem;
+  }
+  .shopBuyBtn {
+    font-size: 0.89rem;
+    padding: 3px 6px;
+  }
+  .shopActions {
+    gap: 6px;
+    padding: 6px 0 0 0;
+  }
+  .shopActions .tc-connect-button, .shopActions button, .shopActions [class*="TonConnectButton"] {
+    font-size: 12px !important;
+    padding: 5px 10px !important;
+    min-width: 90px !important;
+    min-height: 28px !important;
+    border-radius: 7px !important;
+  }
+}
+@media (min-width: 700px) {
+  .shopGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

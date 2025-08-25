@@ -1,3 +1,36 @@
+@media (max-width: 600px) {
+  .trophiesPage {
+    max-width: 99vw;
+    margin: 8px auto;
+    padding: 10px 2px;
+    border-radius: 10px;
+  }
+  .trophiesTitle {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+  }
+  .trophyList {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .trophyCard {
+    min-width: 0;
+    max-width: 99vw;
+    padding: 8px 2px 8px 2px;
+  }
+  .trophyIcon {
+    width: 18px;
+    height: 18px;
+    margin-bottom: 2px;
+  }
+  .trophyName {
+    font-size: 1rem;
+  }
+  .trophyDesc, .trophyReward {
+    font-size: 0.95rem;
+  }
+}
 .trophiesPage {
   max-width: 700px;
   margin: 40px auto;

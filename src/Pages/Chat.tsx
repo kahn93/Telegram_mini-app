@@ -1,9 +1,15 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { getMessages, sendMessage, Message } from '../Database/messagesSupabase';
+import * as React from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { getMessages, Message } from '../Database/messagesSupabase';
+import { chatMessageSend } from '../Database/edgeFunctions';
 import { getUserSupabase } from '../Database/dbSupabase';
 import listIcon from '../assets/list.png';
 
-const Chat: React.FC<{ userId: string }> = ({ userId }) => {
+interface ChatProps {
+  userId: string;
+}
+
+const Chat: React.FC<ChatProps> = ({ userId }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
@@ -38,7 +44,7 @@ const Chat: React.FC<{ userId: string }> = ({ userId }) => {
   const handleSend = async () => {
     if (!input.trim()) return;
     setSending(true);
-    await sendMessage(userId, input.trim());
+  await chatMessageSend({ userId, message: input.trim() });
     setInput('');
     setSending(false);
     // Refresh messages

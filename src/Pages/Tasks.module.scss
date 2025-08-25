@@ -1,3 +1,43 @@
+@media (max-width: 600px) {
+  .tasksPage {
+    max-width: 98vw;
+    margin: 2px auto;
+    padding: 2px 1px 6px 1px;
+    border-radius: 7px;
+  }
+  .dailyCheckInBtn {
+    font-size: 15px;
+    padding: 7px 16px;
+    min-width: 80px;
+    max-width: 98vw;
+  }
+  .taskCard {
+    padding: 7px 4px 7px 4px;
+    min-width: 0;
+    max-width: 98vw;
+    font-size: 13px;
+  }
+  .taskHeader {
+    font-size: 13px;
+  }
+  .taskTitle {
+    font-size: 14px;
+  }
+  .taskReward {
+    font-size: 13px;
+  }
+  .taskDesc {
+    font-size: 12px;
+  }
+  .taskLink {
+    font-size: 13px;
+    padding: 3px 8px;
+  }
+  .completeBtn {
+    font-size: 13px;
+    padding: 3px 8px;
+  }
+}
 @import '../App.module.scss';
 
 .tasksPage {

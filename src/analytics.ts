@@ -1,6 +1,7 @@
 // analytics.ts
 // Simple analytics/event logging for Telegram Mini-App (Supabase)
 import { supabase } from './supabaseClient';
+import { analyticsEventLog } from './Database/edgeFunctions';
 
 export type AnalyticsEvent = {
   userid: string;
@@ -11,8 +12,9 @@ export type AnalyticsEvent = {
 
 const TABLE = 'analytics_events';
 
+
 export async function logEvent(userid: string, event: string, details?: Record<string, unknown>) {
-  await supabase.from(TABLE).insert([{ userid, event, details }]);
+  await analyticsEventLog({ userid, event, details });
 }
 
 export async function getEvents(userid: string, event?: string) {

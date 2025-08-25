@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import * as React from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { marketplaceAction } from '../Database/edgeFunctions';
 import boostIcon from '../assets/rocket.png';
 import nftIcon from '../assets/logo.png';
 import itemIcon from '../assets/gift.png';
@@ -39,10 +41,8 @@ const Marketplace: React.FC = () => {
   }, []);
 
   const handleBuy = async (listing: Listing) => {
-    await supabase
-      .from('marketplace_listings')
-      .update({ status: 'sold' })
-      .eq('id', listing.id);
+    const userId = localStorage.getItem('userId') || 'anon';
+    await marketplaceAction({ userId, action: 'buy', itemId: listing.id.toString() });
     setListings(listings.filter(l => l.id !== listing.id));
     alert(`Purchased ${listing.item}!`);
   };

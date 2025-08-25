@@ -1,8 +1,14 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { getUserNFTs, mintNFT, NFT } from '../Database/nftsSupabase';
-import { uploadToStorage, getPublicUrl } from '../Database/storageSupabase';
+import * as React from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { getUserNFTs, NFT } from '../Database/nftsSupabase';
+import { nftMint } from '../Database/edgeFunctions';
+import { uploadToStorage } from '../Database/storageSupabase';
 
-const NFTGallery: React.FC<{ userId: string }> = ({ userId }) => {
+interface NFTGalleryProps {
+  userId: string;
+}
+
+const NFTGallery: React.FC<NFTGalleryProps> = ({ userId }) => {
   const [nfts, setNfts] = useState<NFT[]>([]);
   const [loading, setLoading] = useState(true);
   const [minting, setMinting] = useState(false);
@@ -22,20 +28,18 @@ const NFTGallery: React.FC<{ userId: string }> = ({ userId }) => {
   const handleMint = async () => {
     if (!name || (!imageUrl && !imageFile)) return;
     setMinting(true);
-    let finalImageUrl = imageUrl;
     if (imageFile) {
       const ext = imageFile.name.split('.').pop() || 'png';
       const path = `nfts/${userId}_${Date.now()}.${ext}`;
       const { error } = await uploadToStorage('nfts', path, imageFile);
-      if (!error) {
-        finalImageUrl = getPublicUrl('nfts', path);
-      } else {
+      if (error) {
         alert('Failed to upload NFT image.');
         setMinting(false);
         return;
       }
+      // Optionally, you could pass the image URL to the Edge Function if supported
     }
-    await mintNFT({ userid: userId, nft_id: Date.now().toString(), name, image_url: finalImageUrl, description: desc });
+    await nftMint({ userId, nftType: name });
     setName(''); setImageUrl(''); setDesc(''); setImageFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
     setMinting(false);

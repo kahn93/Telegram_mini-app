@@ -5,7 +5,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { NotificationProvider } from './Components/NotificationProvider';
 import styles from './App.module.scss';
 import { supabase } from './supabaseClient';
-import { addUserSupabase, updateUserCoinsSupabase, getUserSupabase } from './Database/dbSupabase';
+import { addUserSupabase, getUserSupabase } from './Database/dbSupabase';
+import { coinBalanceSaveLoad, userUpgradePurchase, achievementUnlock } from './Database/edgeFunctions';
 import { getUserByReferralCode, addReferral } from './Database/referralSupabase';
 import { countries } from './Database/countries';
 import Leaderboard from './Components/Leaderboard/Leaderboard';
@@ -89,6 +90,8 @@ function App() {
         return updated;
       });
       setCoinCount((prev) => prev + trophy.reward);
+      // Call Edge Function for achievement unlock
+      if (userId) achievementUnlock({ userId, achievement: trophy.key });
       // Optionally: show animation or notification for trophy unlock
     }
   };
@@ -196,11 +199,11 @@ function App() {
     initializeApp();
   }, []);
 
-  // Auto-save coin balance to Supabase when it changes
+  // Auto-save coin balance to Supabase Edge Function when it changes
   useEffect(() => {
     if (!userId || !selectedCountry) return;
     if (coinCount !== lastSavedCoin) {
-      updateUserCoinsSupabase(userId, coinCount);
+      coinBalanceSaveLoad({ userId, coins: coinCount });
       setLastSavedCoin(coinCount);
     }
   }, [coinCount, userId, selectedCountry, lastSavedCoin]);
@@ -209,14 +212,14 @@ function App() {
   useEffect(() => {
     if (!userId || !selectedCountry) return;
     const interval = setInterval(() => {
-      updateUserCoinsSupabase(userId, coinCount);
+      coinBalanceSaveLoad({ userId, coins: coinCount });
       setLastSavedCoin(coinCount);
     }, 30000); // every 30s
     return () => clearInterval(interval);
   }, [coinCount, userId, selectedCountry]);
 
   // Handle upgrade purchase
-  const handleUpgradePurchase = (key: string) => {
+  const handleUpgradePurchase = async (key: string) => {
     setUpgrades((prev) => {
       const level = prev[key] || 0;
       if (level >= 5000) return prev;
@@ -239,8 +242,10 @@ function App() {
       if (coinCount < price) return prev;
       // Deduct coins
       setCoinCount((c) => c - price);
+      // Call Edge Function for purchase
+      if (userId) userUpgradePurchase({ userId, upgrade: key, cost: price });
       // Apply upgrade effect
-  if (key === 'energy') setEnergy((e) => e + 100 * Math.pow(2, level));
+      if (key === 'energy') setEnergy((e) => e + 100 * Math.pow(2, level));
       if (key === 'ultraBoost') {
         setCoinMultiplier((m) => m * 2);
         setEnergyMultiplier((m) => m * 2);
@@ -249,9 +254,9 @@ function App() {
           setEnergyMultiplier((m) => m / 2);
         }, 60 * 60 * 1000);
       }
-  const updated = { ...prev, [key]: level + 1 };
-  localStorage.setItem('upgrades', JSON.stringify(updated));
-  return updated;
+      const updated = { ...prev, [key]: level + 1 };
+      localStorage.setItem('upgrades', JSON.stringify(updated));
+      return updated;
     });
   };
 
@@ -300,7 +305,7 @@ function App() {
     if (upgrades['energySaver']) energyCost = Math.max(1, energyCost - upgrades['energySaver']);
     setEnergy((prev) => Math.max(0, prev - energyCost));
     if (userId && selectedCountry) {
-      await updateUserCoinsSupabase(userId, coinCount + coinsToAdd);
+      coinBalanceSaveLoad({ userId, coins: coinCount + coinsToAdd });
     }
     // Handle one-time effects
     if (activeEffects['megatap'] && activeEffects['megatap'] > Date.now()) {
@@ -429,7 +434,7 @@ function App() {
       <Boosts
         coinCount={coinCount}
         activeBoosts={activeEffects}
-        onPurchase={(boostKey) => {
+  onPurchase={(boostKey: string) => {
           const now = Date.now();
           if (boostKey === 'doubleCoins') {
             setActiveEffects((prev) => ({ ...prev, doubleCoins: now + 60 * 60 * 1000 }));
@@ -451,9 +456,9 @@ function App() {
         return <Arcade
           userId={userId}
           coinBalance={coinCount}
-          onDeposit={(amount) => setCoinCount((prev) => prev + amount)}
-          onWithdraw={(amount) => setCoinCount((prev) => Math.max(0, prev - amount))}
-          onScore={(score) => setCoinCount((prev) => prev + score)}
+          onDeposit={(amount: number) => setCoinCount((prev) => prev + amount)}
+          onWithdraw={(amount: number) => setCoinCount((prev) => Math.max(0, prev - amount))}
+          onScore={(score: number) => setCoinCount((prev) => prev + score)}
         />;
       case 'Airdrop':
         return <Airdrop />;
@@ -474,6 +479,7 @@ function App() {
     }
   };
 
+    // Add LayoutEditor to NavBar for devs
     return (
       <NotificationProvider>
         <div className={styles.background}>

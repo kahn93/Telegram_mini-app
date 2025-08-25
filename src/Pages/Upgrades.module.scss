@@ -1,3 +1,39 @@
+@media (max-width: 600px) {
+  .upgradesPage {
+    max-width: 99vw;
+    margin: 8px auto;
+    padding: 10px 2px;
+    border-radius: 10px;
+  }
+  .upgradeGrid {
+    grid-template-columns: 1fr;
+    gap: 8px 0;
+  }
+  .upgradeCard {
+    padding: 8px 2px 8px 2px;
+    min-width: 0;
+    max-width: 99vw;
+  }
+  .icon {
+    width: 22px;
+    height: 22px;
+    margin-bottom: 2px;
+  }
+  .title {
+    font-size: 1.1rem;
+  }
+  .desc {
+    font-size: 0.95rem;
+  }
+  .level, .value, .price {
+    font-size: 0.93rem;
+  }
+  .buyBtn {
+    font-size: 1rem;
+    padding: 7px 14px;
+    margin-top: 4px;
+  }
+}
 .upgradesPage {
   max-width: 900px;
   margin: 40px auto;

@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
+import { slotMachineDepositWithdraw, tonJettonPaymentVerify } from '../Database/edgeFunctions';
 import { logEvent } from '../analytics';
 import { TonConnectButton, useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { RECEIVER_WALLET } from '../Database/tonWallet';
@@ -58,7 +60,14 @@ interface SlotMachineProps {
   onBack: () => void;
 }
 
-const SlotMachine: React.FC<SlotMachineProps> = ({ userId, coinBalance, onDeposit, onWithdraw, onScore, onBack }) => {
+const SlotMachine: React.FC<SlotMachineProps> = ({
+  userId,
+  coinBalance,
+  onDeposit,
+  onWithdraw,
+  onScore,
+  onBack
+}: SlotMachineProps) => {
   const [reels, setReels] = useState(getInitialReels());
   const [spinning, setSpinning] = useState(false);
   const [message, setMessage] = useState('');
@@ -149,22 +158,17 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ userId, coinBalance, onDeposi
         ],
       });
       setDepositTx(tx.boc || '');
-      // Call Supabase Edge Function to verify payment
+      // Call Edge Function to verify payment
       const userId = wallet.account.address;
-      // tx.boc is not the tx hash, but for demo, use as identifier (in production, get tx hash from wallet or explorer)
-      const verifyRes = await fetch('/functions/v1/ton-payment-verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ txHash: tx.boc, userId, amountTon: tonAmount }),
-      });
-      const verifyData = await verifyRes.json();
-      if (verifyData.ok) {
+      try {
+        await tonJettonPaymentVerify({ userId, txHash: tx.boc });
+        await slotMachineDepositWithdraw({ userId, amount: coinAmount, action: 'deposit' });
         onDeposit(coinAmount);
         setMessage(`Deposit verified! +${coinAmount} coins.`);
         setMessageType('success');
         // Log deposit event
         await logEvent(wallet.account.address, 'arcade_deposit', { game: 'SlotMachine', tonAmount, coinAmount });
-      } else {
+      } catch (e) {
         setMessage('Deposit not verified. Please contact support.');
         setMessageType('error');
       }
@@ -195,20 +199,16 @@ const SlotMachine: React.FC<SlotMachineProps> = ({ userId, coinBalance, onDeposi
       const tonAmount = 0.1;
       // In production: userId should be Telegram userId or Supabase userId
       const userId = wallet?.account?.address || 'unknown';
-      const res = await fetch('/functions/v1/ton-withdraw', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, withdrawAddress, coinAmount, tonAmount }),
-      });
-      const data = await res.json();
-      if (data.ok) {
+      // Call Edge Function for withdraw
+      try {
+        await slotMachineDepositWithdraw({ userId, amount: coinAmount, action: 'withdraw' });
         setWithdrawMsg('Withdrawal request accepted! TON will be sent soon.');
         setMessageType('success');
         onWithdraw(coinAmount);
         // Log withdraw event
         await logEvent(userId, 'arcade_withdraw', { game: 'SlotMachine', tonAmount, coinAmount, withdrawAddress });
-      } else {
-        setWithdrawMsg('Withdrawal failed: ' + (data.error || 'Unknown error'));
+      } catch (e) {
+        setWithdrawMsg('Withdrawal failed. Please contact support.');
         setMessageType('error');
       }
     } catch (e: unknown) {
