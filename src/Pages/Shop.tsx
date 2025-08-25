@@ -39,41 +39,50 @@ interface ShopProps {
 	purchased: { [key: string]: boolean };
 }
 
+
 const Shop: React.FC<ShopProps> = ({ onPurchase, purchased }) => {
 	const [txStatus, setTxStatus] = useState<string | null>(null);
 	const [loading, setLoading] = useState<string | null>(null); // item label if loading
 	const [tonConnectUI] = useTonConnectUI();
+	const [walletWarning, setWalletWarning] = useState<string | null>(null);
 
 
-	// Purchase handler
-	const handlePurchase = async (item: { label: string; price: number; value?: number; effect?: string }) => {
-		setTxStatus(null);
-		setLoading(item.label);
-		try {
-			await tonConnectUI.sendTransaction({
-				validUntil: Math.floor(Date.now() / 1000) + 360,
-				messages: [
-					{
-						address: RECEIVER_WALLET,
-						amount: (item.price * 1e9).toString(), // TON to nanoTON
-					},
-				],
-			});
-			setTxStatus(`✅ Purchase successful: ${item.label}`);
-// 			notify({ message: `Purchase successful: ${item.label}`, type: 'success' });
-			onPurchase(item);
-			// Log analytics event
-			const userId = localStorage.getItem('userId') || 'unknown';
-			await logEvent(userId, 'shop_purchase', { item: item.label, price: item.price });
-		} catch (e: unknown) {
-			let msg = 'Transaction cancelled or failed.';
-			if (typeof e === 'object' && e && 'message' in e && typeof (e as { message?: unknown }).message === 'string') {
-				msg += `\n${(e as { message: string }).message}`;
+
+		// Purchase handler
+		const handlePurchase = async (item: { label: string; price: number; value?: number; effect?: string }) => {
+			setTxStatus(null);
+			setWalletWarning(null);
+			setLoading(item.label);
+			try {
+				// Check if wallet is connected
+				if (!tonConnectUI.account) {
+					setWalletWarning('Please connect your TON wallet before making a purchase.');
+					setLoading(null);
+					return;
+				}
+				await tonConnectUI.sendTransaction({
+					validUntil: Math.floor(Date.now() / 1000) + 360,
+					messages: [
+						{
+							address: RECEIVER_WALLET,
+							amount: (item.price * 1e9).toString(), // TON to nanoTON
+						},
+					],
+				});
+				setTxStatus(`✅ Purchase successful: ${item.label}`);
+				onPurchase(item);
+				// Log analytics event
+				const userId = localStorage.getItem('userId') || 'unknown';
+				await logEvent(userId, 'shop_purchase', { item: item.label, price: item.price });
+			} catch (e: unknown) {
+				let msg = 'Transaction cancelled or failed.';
+				if (typeof e === 'object' && e && 'message' in e && typeof (e as { message?: unknown }).message === 'string') {
+					msg += `\n${(e as { message: string }).message}`;
+				}
+				setTxStatus(msg);
 			}
-			setTxStatus(msg);
-		}
-		setLoading(null);
-	};
+			setLoading(null);
+		};
 
 			return (
 				<div className={styles.shopContainer}>
@@ -142,11 +151,14 @@ const Shop: React.FC<ShopProps> = ({ onPurchase, purchased }) => {
 									<div className={styles.shopActions}>
 										<TonConnectButton />
 									</div>
-					{txStatus && (
-						<div style={{
-							animation: txStatus.startsWith('✅') ? 'popSuccess 0.5s' : undefined
-						}}>{txStatus}</div>
-					)}
+								{walletWarning && (
+									<div style={{ color: 'red', fontWeight: 600, margin: '8px 0' }}>{walletWarning}</div>
+								)}
+								{txStatus && (
+									<div style={{
+										animation: txStatus.startsWith('✅') ? 'popSuccess 0.5s' : undefined
+									}}>{txStatus}</div>
+								)}
 					<style>{`
 						@keyframes popSuccess {
 							0% { transform: scale(0.8); opacity: 0.5; }
