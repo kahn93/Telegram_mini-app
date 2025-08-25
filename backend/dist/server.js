@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 8080;
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 // Supabase client
-const supabase = (0, supabase_js_1.createClient)(process.env.VITE_SUPABASE_URL || '', process.env.VITE_SUPABASE_ANON_KEY || '');
+const supabase = (0, supabase_js_1.createClient)(process.env.SUPABASE_URL || '', process.env.SUPABASE_ANON_KEY || '');
 // Health check
 app.get('/', (_req, res) => {
     res.send('Backend is running!');
