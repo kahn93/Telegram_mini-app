@@ -1,6 +1,6 @@
 // netlify/functions/airdrop_metrics.js
 
-const { getPlayerMetrics } = require('../../src/Logic/AirdropLogic');
+const { getPlayerMetrics } = require('./airdrop_metrics_logic');
 
 module.exports = async function handler(req, res) {
   const { playerId } = req.query;
