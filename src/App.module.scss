@@ -355,11 +355,12 @@ p {
   font-size: 18px;
 }
 
+// NavBar fixed at top, overlays all content, no layout shift
 .menu {
   width: 100vw;
   max-width: 480px;
   min-width: 240px;
-  height: 36px;
+  height: 48px;
   margin: 0 auto;
   padding: 0 4px;
   display: flex;
@@ -370,12 +371,13 @@ p {
   gap: 6px;
   position: fixed;
   left: 50%;
-  bottom: 0;
+  top: 0;
+  bottom: unset;
   transform: translateX(-50%);
   background: #192259;
-  z-index: 100;
-  box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
-  border-radius: 16px 16px 0 0;
+  z-index: 2000;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  border-radius: 0 0 16px 16px;
   scrollbar-width: none; /* Firefox */
 }
 .menu::-webkit-scrollbar {

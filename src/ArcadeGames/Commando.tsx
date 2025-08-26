@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useRef, useEffect, useState } from 'react';
 import LeaderboardMini from './LeaderboardMini';
 import { submitScoreSupabase } from './leaderboardSupabase';
+import { playSound, isMuted } from '../soundManager';
 
 const GAME_WIDTH = 400;
 const GAME_HEIGHT = 480;
@@ -34,7 +35,24 @@ interface Enemy {
   alive: boolean;
 }
 
-const Commando: React.FC = () => {
+interface CommandoProps {
+  userid?: string;
+  muted?: boolean;
+}
+const Commando: React.FC<CommandoProps> = ({ userid: propUserId, muted }) => {
+  const [userId, setUserId] = useState<string>(propUserId || '');
+  useEffect(() => {
+    if (!propUserId) {
+      try {
+        const tg = (window as unknown as { Telegram?: { WebApp?: { initDataUnsafe?: { user?: { id?: string | number } } } } }).Telegram?.WebApp;
+        if (tg && tg.initDataUnsafe?.user?.id) {
+          setUserId(tg.initDataUnsafe.user.id.toString());
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [propUserId]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
@@ -56,6 +74,7 @@ const Commando: React.FC = () => {
     const handleDown = (e: KeyboardEvent) => {
       keys.current[e.key] = true;
       if (e.key === ' ' || e.key === 'ArrowUp') setShowInstructions(false);
+      if (!muted && !isMuted()) playSound('button');
     };
     const handleUp = (e: KeyboardEvent) => {
       keys.current[e.key] = false;
@@ -66,7 +85,7 @@ const Commando: React.FC = () => {
       window.removeEventListener('keydown', handleDown);
       window.removeEventListener('keyup', handleUp);
     };
-  }, []);
+  }, [muted]);
 
   // Main game loop
   useEffect(() => {
@@ -84,6 +103,9 @@ const Commando: React.FC = () => {
     return () => cancelAnimationFrame(anim);
     // eslint-disable-next-line
   }, [running, player, bullets, enemies, gameOver, win]);
+
+  const [showGameOverEffect, setShowGameOverEffect] = useState(false);
+  const [showScorePop, setShowScorePop] = useState(false);
 
   function update(dt: number) {
     if (gameOver || win) return;
@@ -118,6 +140,7 @@ const Commando: React.FC = () => {
         { x: p.x + PLAYER_SIZE / 2 - BULLET_SIZE / 2, y: p.y, vx: 0, vy: -BULLET_SPEED, fromEnemy: false },
       ]);
       keys.current[' '] = false;
+      if (!muted && !isMuted()) playSound('spin');
     }
     // Bullets
     let newBullets = bullets.map(b => ({ ...b, x: b.x + b.vx * dt * 2, y: b.y + b.vy * dt * 2 }));
@@ -152,6 +175,9 @@ const Commando: React.FC = () => {
             e.alive = false;
             b.y = -1000;
             setScore(s => s + 500);
+            if (!muted && !isMuted()) playSound('win');
+            setShowScorePop(true);
+            setTimeout(() => setShowScorePop(false), 500);
           }
         }
       } else {
@@ -165,6 +191,9 @@ const Commando: React.FC = () => {
           setPlayer(pl => ({ ...pl, alive: false }));
           setGameOver(true);
           setRunning(false);
+          setShowGameOverEffect(true);
+          if (!muted && !isMuted()) playSound('die');
+          setTimeout(() => setShowGameOverEffect(false), 1200);
           return;
         }
       }
@@ -175,6 +204,9 @@ const Commando: React.FC = () => {
       setWin(true);
       setRunning(false);
       setScore(s => s + 2000);
+      setShowGameOverEffect(true);
+      if (!muted && !isMuted()) playSound('bonus');
+      setTimeout(() => setShowGameOverEffect(false), 1200);
     }
   }
 
@@ -223,9 +255,12 @@ const Commando: React.FC = () => {
       ctx.fillRect(b.x, b.y, BULLET_SIZE, BULLET_SIZE);
     }
     // Score
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 16px sans-serif';
-    ctx.fillText(`Score: ${score}`, 10, 20);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.save();
+  if (showScorePop) ctx.shadowColor = '#ffe259', ctx.shadowBlur = 16;
+  ctx.fillText(`Score: ${score}`, 10, 20);
+  ctx.restore();
     if (showInstructions) {
       ctx.fillStyle = 'rgba(0,0,0,0.7)';
       ctx.fillRect(30, 120, 340, 120);
@@ -239,18 +274,30 @@ const Commando: React.FC = () => {
       ctx.fillText('Press any key to start', 100, 240);
     }
     if (gameOver) {
-      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.save();
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = '#18182a';
       ctx.fillRect(60, 180, 280, 80);
-      ctx.fillStyle = '#fff';
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#fd79a8';
       ctx.font = 'bold 28px sans-serif';
+      ctx.shadowColor = '#fff';
+      ctx.shadowBlur = showGameOverEffect ? 24 : 0;
       ctx.fillText('Game Over', 120, 220);
+      ctx.restore();
     }
     if (win) {
-      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.save();
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = '#18182a';
       ctx.fillRect(60, 180, 280, 80);
-      ctx.fillStyle = '#fff';
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#ffe259';
       ctx.font = 'bold 28px sans-serif';
+      ctx.shadowColor = '#fff';
+      ctx.shadowBlur = showGameOverEffect ? 24 : 0;
       ctx.fillText('You Win!', 140, 220);
+      ctx.restore();
     }
   }
 
@@ -262,6 +309,8 @@ const Commando: React.FC = () => {
     setWin(false);
     setRunning(true);
     setShowInstructions(true);
+    setShowGameOverEffect(false);
+    if (!muted && !isMuted()) playSound('button');
     setEnemies([
       { x: 80, y: 80, vx: ENEMY_SPEED, vy: 0, alive: true },
       { x: 320, y: 160, vx: -ENEMY_SPEED, vy: 0, alive: true },
@@ -272,35 +321,105 @@ const Commando: React.FC = () => {
   async function handleSubmitScore() {
     setSubmitting(true);
     try {
-      const userId = localStorage.getItem('userId') || 'anon';
-      await submitScoreSupabase('commando', userId, score);
+      const id = userId || localStorage.getItem('userId') || 'anon';
+      await submitScoreSupabase('commando', id, score);
     } catch {
       // Error intentionally ignored
     }
     setSubmitting(false);
   }
 
+  // Animated glowing background
+  const bgDots = Array.from({ length: 18 }, () => ({
+    x: Math.random() * GAME_WIDTH,
+    y: Math.random() * GAME_HEIGHT,
+    r: 3 + Math.random() * 2,
+    opacity: 0.10 + Math.random() * 0.18,
+  }));
+
   return (
-    <div className="arcade-game-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <h2>Commando</h2>
+    <div
+      className="arcade-game-container"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        background: 'radial-gradient(ellipse at 60% 40%, #23234a 70%, #18182a 100%)',
+        borderRadius: 18,
+        boxShadow: '0 0 32px #fd79a8',
+        padding: 24,
+        maxWidth: 440,
+        margin: '0 auto',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Animated glowing dots background */}
+      <svg width={GAME_WIDTH} height={GAME_HEIGHT} style={{ position: 'absolute', left: 0, top: 0, zIndex: 0 }}>
+        {bgDots.map((d, i) => (
+          <circle key={i} cx={d.x} cy={d.y + (Math.sin(Date.now() / 800 + i) * 10)} r={d.r} fill="#fd79a8" opacity={d.opacity} />
+        ))}
+      </svg>
+      <h2 style={{ color: '#fd79a8', textShadow: '0 0 8px #fff', marginBottom: 8, zIndex: 2, position: 'relative' }}>Commando</h2>
       <canvas
         ref={canvasRef}
         width={GAME_WIDTH}
         height={GAME_HEIGHT}
-        style={{ border: '2px solid #fff', background: '#2e2e2e', marginBottom: 16, maxWidth: '100%', height: 'auto' }}
+        style={{ border: '2px solid #fff', background: 'transparent', marginBottom: 16, maxWidth: '100%', height: 'auto', zIndex: 2, position: 'relative' }}
         tabIndex={0}
       />
       {(gameOver || win) && (
         <div style={{ margin: 8 }}>
-          <button onClick={restart} style={{ marginRight: 12 }}>Restart</button>
-          <button onClick={handleSubmitScore} disabled={submitting}>
-            {submitting ? 'Submitting...' : 'Submit Score'}
-          </button>
+          <button
+            onClick={restart}
+            style={{
+              marginRight: 12,
+              background: '#fd79a8',
+              color: '#fff',
+              borderRadius: 10,
+              padding: '8px 28px',
+              fontWeight: 700,
+              fontSize: 18,
+              boxShadow: '0 0 8px #fd79a8',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background 0.2s, color 0.2s',
+            }}
+          >Restart</button>
+          <button
+            onClick={handleSubmitScore}
+            disabled={submitting}
+            style={{
+              background: '#ffe259',
+              color: '#23234a',
+              borderRadius: 10,
+              padding: '8px 28px',
+              fontWeight: 700,
+              fontSize: 18,
+              boxShadow: '0 0 8px #ffe259',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background 0.2s, color 0.2s',
+            }}
+          >{submitting ? 'Submitting...' : 'Submit Score'}</button>
         </div>
       )}
+      <div style={{ color: '#fd79a8', fontWeight: 600, fontSize: 14, marginTop: 8, textShadow: '0 0 6px #fff' }}>User: {userId || 'Not connected'}</div>
       <div style={{ marginTop: 24, width: '100%' }}>
         <LeaderboardMini gameId="commando" />
       </div>
+      <style>{`
+        @keyframes popSuccess {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.2); }
+          100% { transform: scale(1); }
+        }
+        @keyframes popError {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.15); }
+          100% { transform: scale(1); }
+        }
+      `}</style>
     </div>
   );
 };

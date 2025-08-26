@@ -40,7 +40,26 @@ function rectsOverlap(a: Entity, b: Entity) {
   );
 }
 
-const Joust: React.FC = () => {
+import { playSound, isMuted } from '../soundManager';
+
+interface JoustProps {
+  userid?: string;
+  muted?: boolean;
+}
+const Joust: React.FC<JoustProps> = ({ userid: propUserId, muted }) => {
+  const [userId, setUserId] = useState<string>(propUserId || '');
+  useEffect(() => {
+    if (!propUserId) {
+      try {
+        const tg = (window as unknown as { Telegram?: { WebApp?: { initDataUnsafe?: { user?: { id?: string | number } } } } }).Telegram?.WebApp;
+        if (tg && tg.initDataUnsafe?.user?.id) {
+          setUserId(tg.initDataUnsafe.user.id.toString());
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [propUserId]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
@@ -61,6 +80,7 @@ const Joust: React.FC = () => {
     const handleDown = (e: KeyboardEvent) => {
       keys.current[e.key] = true;
       if (e.key === ' ' || e.key === 'ArrowUp') setShowInstructions(false);
+      if (!muted && !isMuted()) playSound('button');
     };
     const handleUp = (e: KeyboardEvent) => {
       keys.current[e.key] = false;
@@ -71,7 +91,7 @@ const Joust: React.FC = () => {
       window.removeEventListener('keydown', handleDown);
       window.removeEventListener('keyup', handleUp);
     };
-  }, []);
+  }, [muted]);
 
   // Main game loop
   useEffect(() => {
@@ -90,6 +110,9 @@ const Joust: React.FC = () => {
     // eslint-disable-next-line
   }, [running, player, enemies, gameOver, win]);
 
+  const [showGameOverEffect, setShowGameOverEffect] = useState(false);
+  const [showScorePop, setShowScorePop] = useState(false);
+
   function update(dt: number) {
     if (gameOver || win) return;
     const p = { ...player };
@@ -97,7 +120,10 @@ const Joust: React.FC = () => {
     if (keys.current['ArrowLeft']) p.vx = -PLAYER_SPEED;
     else if (keys.current['ArrowRight']) p.vx = PLAYER_SPEED;
     else p.vx = 0;
-    if (keys.current[' '] && p.vy > -2) p.vy = FLAP_VELOCITY;
+    if (keys.current[' '] && p.vy > -2) {
+      p.vy = FLAP_VELOCITY;
+      if (!muted && !isMuted()) playSound('spin');
+    }
     // Gravity
     p.vy += GRAVITY * dt;
     p.x += p.vx * dt * 2;
@@ -149,11 +175,17 @@ const Joust: React.FC = () => {
           // Player is above enemy
           e.alive = false;
           setScore(s => s + 500);
+          if (!muted && !isMuted()) playSound('win');
+          setShowScorePop(true);
+          setTimeout(() => setShowScorePop(false), 500);
         } else {
           // Enemy is above player
           setPlayer(pl => ({ ...pl, alive: false }));
           setGameOver(true);
           setRunning(false);
+          setShowGameOverEffect(true);
+          if (!muted && !isMuted()) playSound('die');
+          setTimeout(() => setShowGameOverEffect(false), 1200);
           return;
         }
       }
@@ -163,6 +195,9 @@ const Joust: React.FC = () => {
       setWin(true);
       setRunning(false);
       setScore(s => s + 1000);
+      setShowGameOverEffect(true);
+      if (!muted && !isMuted()) playSound('bonus');
+      setTimeout(() => setShowGameOverEffect(false), 1200);
     }
     setPlayer(p);
     setEnemies(newEnemies);
@@ -210,9 +245,12 @@ const Joust: React.FC = () => {
       ctx.restore();
     }
     // Score
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 16px sans-serif';
-    ctx.fillText(`Score: ${score}`, 10, 20);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.save();
+  if (showScorePop) ctx.shadowColor = '#ffe259', ctx.shadowBlur = 16;
+  ctx.fillText(`Score: ${score}`, 10, 20);
+  ctx.restore();
     if (showInstructions) {
       ctx.fillStyle = 'rgba(0,0,0,0.7)';
       ctx.fillRect(30, 120, 340, 120);
@@ -226,18 +264,30 @@ const Joust: React.FC = () => {
       ctx.fillText('Press any key to start', 100, 240);
     }
     if (gameOver) {
-      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.save();
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = '#18182a';
       ctx.fillRect(60, 180, 280, 80);
-      ctx.fillStyle = '#fff';
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#fd79a8';
       ctx.font = 'bold 28px sans-serif';
+      ctx.shadowColor = '#fff';
+      ctx.shadowBlur = showGameOverEffect ? 24 : 0;
       ctx.fillText('Game Over', 120, 220);
+      ctx.restore();
     }
     if (win) {
-      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.save();
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = '#18182a';
       ctx.fillRect(60, 180, 280, 80);
-      ctx.fillStyle = '#fff';
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#ffe259';
       ctx.font = 'bold 28px sans-serif';
+      ctx.shadowColor = '#fff';
+      ctx.shadowBlur = showGameOverEffect ? 24 : 0;
       ctx.fillText('You Win!', 140, 220);
+      ctx.restore();
     }
   }
 
@@ -253,40 +303,112 @@ const Joust: React.FC = () => {
     setWin(false);
     setRunning(true);
     setShowInstructions(true);
+    setShowGameOverEffect(false);
+    if (!muted && !isMuted()) playSound('button');
   }
 
   async function handleSubmitScore() {
     setSubmitting(true);
     try {
-      const userId = localStorage.getItem('userId') || 'anon';
-      await submitScoreSupabase('joust', userId, score);
+      const id = userId || localStorage.getItem('userId') || 'anon';
+      await submitScoreSupabase('joust', id, score);
     } catch {
       // Error intentionally ignored
     }
     setSubmitting(false);
   }
 
+  // Animated glowing background
+  const bgDots = Array.from({ length: 18 }, () => ({
+    x: Math.random() * GAME_WIDTH,
+    y: Math.random() * GAME_HEIGHT,
+    r: 3 + Math.random() * 2,
+    opacity: 0.10 + Math.random() * 0.18,
+  }));
+
   return (
-    <div className="arcade-game-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <h2>Joust</h2>
+    <div
+      className="arcade-game-container"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        background: 'radial-gradient(ellipse at 60% 40%, #23234a 70%, #18182a 100%)',
+        borderRadius: 18,
+        boxShadow: '0 0 32px #fd79a8',
+        padding: 24,
+        maxWidth: 440,
+        margin: '0 auto',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Animated glowing dots background */}
+      <svg width={GAME_WIDTH} height={GAME_HEIGHT} style={{ position: 'absolute', left: 0, top: 0, zIndex: 0 }}>
+        {bgDots.map((d, i) => (
+          <circle key={i} cx={d.x} cy={d.y + (Math.sin(Date.now() / 800 + i) * 10)} r={d.r} fill="#fd79a8" opacity={d.opacity} />
+        ))}
+      </svg>
+      <h2 style={{ color: '#fd79a8', textShadow: '0 0 8px #fff', marginBottom: 8, zIndex: 2, position: 'relative' }}>Joust</h2>
       <canvas
         ref={canvasRef}
         width={GAME_WIDTH}
         height={GAME_HEIGHT}
-        style={{ border: '2px solid #fff', background: '#1a1a2e', marginBottom: 16, maxWidth: '100%', height: 'auto' }}
+        style={{ border: '2px solid #fff', background: 'transparent', marginBottom: 16, maxWidth: '100%', height: 'auto', zIndex: 2, position: 'relative' }}
         tabIndex={0}
       />
       {(gameOver || win) && (
         <div style={{ margin: 8 }}>
-          <button onClick={restart} style={{ marginRight: 12 }}>Restart</button>
-          <button onClick={handleSubmitScore} disabled={submitting}>
-            {submitting ? 'Submitting...' : 'Submit Score'}
-          </button>
+          <button
+            onClick={restart}
+            style={{
+              marginRight: 12,
+              background: '#fd79a8',
+              color: '#fff',
+              borderRadius: 10,
+              padding: '8px 28px',
+              fontWeight: 700,
+              fontSize: 18,
+              boxShadow: '0 0 8px #fd79a8',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background 0.2s, color 0.2s',
+            }}
+          >Restart</button>
+          <button
+            onClick={handleSubmitScore}
+            disabled={submitting}
+            style={{
+              background: '#ffe259',
+              color: '#23234a',
+              borderRadius: 10,
+              padding: '8px 28px',
+              fontWeight: 700,
+              fontSize: 18,
+              boxShadow: '0 0 8px #ffe259',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background 0.2s, color 0.2s',
+            }}
+          >{submitting ? 'Submitting...' : 'Submit Score'}</button>
         </div>
       )}
+      <div style={{ color: '#fd79a8', fontWeight: 600, fontSize: 14, marginTop: 8, textShadow: '0 0 6px #fff' }}>User: {userId || 'Not connected'}</div>
       <div style={{ marginTop: 24, width: '100%' }}>
         <LeaderboardMini gameId="joust" />
       </div>
+      <style>{`
+        @keyframes popSuccess {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.2); }
+          100% { transform: scale(1); }
+        }
+        @keyframes popError {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.15); }
+          100% { transform: scale(1); }
+        }
+      `}</style>
     </div>
   );
 };

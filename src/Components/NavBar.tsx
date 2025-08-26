@@ -35,6 +35,7 @@ const navItems = [
   { label: 'Airdrop', page: 'Airdrop', icon: airdropImg },
   { label: 'Leaderboard', page: 'leaderboard', icon: crownImg },
   // Referrals removed from nav
+  { label: 'Guardian Angel', page: 'guardianangel', icon: eventsImg },
   { label: 'Chat', page: 'chat', icon: chatImg },
   { label: 'Events', page: 'events', icon: eventsImg },
   { label: 'NFTs', page: 'Marketplace', icon: nftsImg },

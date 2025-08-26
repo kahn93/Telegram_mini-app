@@ -1,3 +1,5 @@
+import GuardianAngel from './Pages/GuardianAngel';
+import { playMusic, stopMusic, isMuted, toggleMute } from './soundManager';
 import Marketplace from './Pages/Marketplace';
 import { triggerAnalytics } from './utils/webhooks';
 import { requestNotificationPermission, sendBrowserNotification } from './notifications';
@@ -58,6 +60,30 @@ import { MAX_ENERGY, getInitialEnergy } from './Database/energyLogic';
 
 
 
+
+// Try to get Telegram WebApp userId if available
+interface TelegramWebApp {
+  initDataUnsafe?: {
+    user?: {
+      id?: string | number;
+    };
+  };
+}
+
+function getTelegramUserId(): string | undefined {
+  try {
+    const tg = (window as unknown as { Telegram?: { WebApp?: TelegramWebApp } }).Telegram?.WebApp;
+    if (tg && tg.initDataUnsafe?.user?.id) {
+      return tg.initDataUnsafe.user.id.toString();
+    }
+  } catch (e) {
+    // Ignore Telegram detection errors
+  }
+  return undefined;
+}
+
+
+
 function App() {
 
   // ...existing code...
@@ -99,13 +125,28 @@ function App() {
   // Track last saved coin count for auto-save
   const [lastSavedCoin, setLastSavedCoin] = useState<number>(0);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string>('');
+  const [userId, setUserId] = useState<string>(() => {
+    // Prefer Telegram userId if available
+    return getTelegramUserId() || localStorage.getItem('userId') || '';
+  });
   // Example: Trigger analytics event after userId is set
   useEffect(() => {
+    // If Telegram userId is available, always use it
+    const tgId = getTelegramUserId();
+    if (tgId && tgId !== userId) {
+      setUserId(tgId);
+      localStorage.setItem('userId', tgId);
+    }
     if (userId) {
       triggerAnalytics('app_loaded', userId);
     }
   }, [userId]);
+
+  // Play background music on load
+  useEffect(() => {
+    if (!isMuted()) playMusic('arcade_bgm', true, 0.35);
+    return () => stopMusic();
+  }, []);
   const [currentView, setCurrentView] = useState<string>('coin');
   const [energy, setEnergy] = useState<number>(getInitialEnergy());
   // Shop state
@@ -474,6 +515,8 @@ function App() {
         return <NFTGallery userId={userId} />;
       case 'useranalytics':
         return <UserAnalytics userId={userId} />;
+      case 'guardianangel':
+        return <GuardianAngel userId={userId} />;
       default:
         return null;
     }
@@ -484,6 +527,32 @@ function App() {
       <NotificationProvider>
         <div className={styles.background}>
           <div className={styles.app}>
+            {/* Global mute/unmute button */}
+            <button
+              onClick={() => {
+                toggleMute();
+                if (!isMuted()) playMusic('arcade_bgm', true, 0.35);
+              }}
+              style={{
+                position: 'fixed',
+                top: 18,
+                right: 18,
+                zIndex: 1000,
+                background: isMuted() ? '#eee' : 'linear-gradient(135deg,#ffe259,#ffa751,#43cea2,#185a9d)',
+                color: isMuted() ? '#888' : '#222',
+                border: 'none',
+                borderRadius: 24,
+                padding: '10px 18px',
+                fontWeight: 700,
+                fontSize: 18,
+                boxShadow: '0 2px 12px #24308a22',
+                transition: 'background 0.2s, color 0.2s',
+                cursor: 'pointer',
+              }}
+              aria-label={isMuted() ? 'Unmute' : 'Mute'}
+            >
+              {isMuted() ? '🔇 Sound Off' : '🔊 Sound On'}
+            </button>
             {renderContent()}
             {selectedCountry && (
               <NavBar onNavigate={setCurrentView} />

@@ -1,3 +1,5 @@
+import ArcadeDangerousBeautySlot from './ArcadeDangerousBeautySlot';
+import ArcadeMoonMaidenSlot from './ArcadeMoonMaidenSlot';
 import ArcadeRType from './ArcadeRType';
 import ArcadePunchOut from './ArcadePunchOut';
 import ArcadeQbert from './ArcadeQbert';
@@ -21,7 +23,6 @@ import ArcadeCentipede from './ArcadeCentipede';
 import ArcadeJoust from './ArcadeJoust';
 import ArcadeSnake from './ArcadeSnake';
 import ArcadeDigDug from './ArcadeDigDug';
-import ArcadeGalaga from './ArcadeGalaga';
 import ArcadePaperBoy from './ArcadePaperBoy';
 
 
@@ -29,7 +30,10 @@ import ArcadePacman from './ArcadePacman';
 import ArcadeAsteroids from './ArcadeAsteroids';
 import ArcadeTetris from './ArcadeTetris';
 import ArcadePlinko from './ArcadePlinko';
+
 import ArcadeSlotMachine from './ArcadeSlotMachine';
+import ArcadeSlotMachine2 from './ArcadeSlotMachine2';
+import ArcadeSlotMachine3 from './ArcadeSlotMachine3';
 
 
 interface ArcadeProps {
@@ -41,7 +45,7 @@ interface ArcadeProps {
 }
 
 
-type GameName = 'Pacman' | 'Asteroids' | 'Tetris' | 'Plinko' | 'SlotMachine' | 'MemoryMatch' | 'DonkeyKong' | 'SpaceInvaders' | 'Joust' | 'Sinistar' | 'Commando' | 'Centipede' | 'Snake' | 'DigDug' | 'Galaga' | 'PaperBoy' | 'PunchOut' | 'Qbert' | 'Rampage' | 'StreetFighter' | 'RType';
+type GameName = 'Pacman' | 'Asteroids' | 'Tetris' | 'Plinko' | 'SlotMachine' | 'SlotMachine2' | 'SlotMachine3' | 'DangerousBeautySlot' | 'MoonMaidenSlot' | 'MemoryMatch' | 'DonkeyKong' | 'SpaceInvaders' | 'Joust' | 'Sinistar' | 'Commando' | 'Centipede' | 'Snake' | 'DigDug' | 'PaperBoy' | 'PunchOut' | 'Qbert' | 'Rampage' | 'StreetFighter' | 'RType';
 // All game selection logic and buttons are now handled inside the Arcade component below.
 const Arcade: React.FC<ArcadeProps> = (props) => {
 	const userId = props.userId;
@@ -73,6 +77,10 @@ const Arcade: React.FC<ArcadeProps> = (props) => {
 			onScore={props.onScore || (() => {})}
 			onBack={() => setSelectedGame(null)}
 		/>;
+	else if (selectedGame === 'SlotMachine2')
+		gameComponent = <ArcadeSlotMachine2 userId={userId} onBack={() => setSelectedGame(null)} />;
+	else if (selectedGame === 'SlotMachine3')
+		gameComponent = <ArcadeSlotMachine3 userId={userId} onBack={() => setSelectedGame(null)} />;
 	else if (selectedGame === 'MemoryMatch')
 		gameComponent = <MemoryMatch onScore={props.onScore || (() => {})} />;
 	else if (selectedGame === 'Sinistar')
@@ -85,8 +93,6 @@ const Arcade: React.FC<ArcadeProps> = (props) => {
 		gameComponent = <ArcadeSnake />;
 	else if (selectedGame === 'DigDug')
 		gameComponent = <ArcadeDigDug />;
-	else if (selectedGame === 'Galaga')
-		gameComponent = <ArcadeGalaga />;
 	else if (selectedGame === 'Joust')
 		gameComponent = <ArcadeJoust onBack={() => setSelectedGame(null)} />;
 	else if (selectedGame === 'SpaceInvaders')
@@ -99,10 +105,17 @@ const Arcade: React.FC<ArcadeProps> = (props) => {
 		gameComponent = <ArcadeRampage userId={userId} />;
 	else if (selectedGame === 'StreetFighter')
 		gameComponent = <ArcadeStreetFighter userId={userId} />;
+
 	else if (selectedGame === 'RType')
 		gameComponent = <ArcadeRType userId={''} />;
+	else if (selectedGame === 'DangerousBeautySlot')
+		gameComponent = <ArcadeDangerousBeautySlot userId={userId} onBack={() => setSelectedGame(null)} />;
+	else if (selectedGame === 'MoonMaidenSlot')
+		gameComponent = <ArcadeMoonMaidenSlot userId={userId} onBack={() => setSelectedGame(null)} />;
 
 	const gameButtons = [
+	{ key: 'DangerousBeautySlot', label: '🌸 Dangerous Beauty', onClick: () => setSelectedGame('DangerousBeautySlot'), style: { background: 'linear-gradient(135deg,#ffb7e5,#fd79a8)', color: '#e17055', fontWeight: 700, boxShadow: '0 0 16px #e17055' } },
+	{ key: 'MoonMaidenSlot', label: '🌙 Moon Maiden', onClick: () => setSelectedGame('MoonMaidenSlot'), style: { background: 'linear-gradient(135deg,#b2bec3,#6c5ce7)', color: '#6c5ce7', fontWeight: 700, boxShadow: '0 0 16px #6c5ce7' } },
 		{ key: 'PunchOut', label: '🥊 Punch Out', onClick: () => setSelectedGame('PunchOut') },
 		{ key: 'MemoryMatch', label: '🧠 Memory Match', onClick: () => setSelectedGame('MemoryMatch') },
 		{ key: 'DonkeyKong', label: '� Donkey Kong', onClick: () => setSelectedGame('DonkeyKong') },
@@ -111,19 +124,20 @@ const Arcade: React.FC<ArcadeProps> = (props) => {
 		{ key: 'Tetris', label: <><img src={tetrisIcon} alt="Tetris" style={{ width: 38, marginBottom: 4 }} />Tetris</>, onClick: () => setSelectedGame('Tetris') },
 		{ key: 'Plinko', label: <><img src={plinkoIcon} alt="Plinko" style={{ width: 38, marginBottom: 4 }} />Plinko</>, onClick: () => setSelectedGame('Plinko') },
 		{ key: 'SlotMachine', label: <><img src={slotIcon} alt="Slot Machine" style={{ width: 38, marginBottom: 4 }} />Slot Machine 🎰</>, onClick: () => setSelectedGame('SlotMachine'), style: { background: 'linear-gradient(135deg,#f39c12,#e74c3c,#00bfff,#f9e79f)', color: '#fff', fontWeight: 700, boxShadow: '0 0 16px #f39c12' } },
+		{ key: 'SlotMachine2', label: <><img src={slotIcon} alt="Slot Machine 2" style={{ width: 38, marginBottom: 4 }} />Cyberpunk Slot 🛸</>, onClick: () => setSelectedGame('SlotMachine2'), style: { background: 'linear-gradient(135deg,#00fff7,#ff00ea,#00ff85,#ffe600)', color: '#222', fontWeight: 700, boxShadow: '0 0 16px #00fff7' } },
+		{ key: 'SlotMachine3', label: <><img src={slotIcon} alt="Slot Machine 3" style={{ width: 38, marginBottom: 4 }} />Egypt Slot 👑</>, onClick: () => setSelectedGame('SlotMachine3'), style: { background: 'linear-gradient(135deg,#e1b12c,#44bd32,#fbc531,#00a8ff)', color: '#222', fontWeight: 700, boxShadow: '0 0 16px #e1b12c' } },
 		{ key: 'Sinistar', label: '👹 Sinistar', onClick: () => setSelectedGame('Sinistar') },
 		{ key: 'Commando', label: '🪖 Commando', onClick: () => setSelectedGame('Commando') },
 		{ key: 'Centipede', label: '🐛 Centipede', onClick: () => setSelectedGame('Centipede') },
 		{ key: 'Snake', label: '🐍 Snake', onClick: () => setSelectedGame('Snake') },
 		{ key: 'DigDug', label: '👷 Dig Dug', onClick: () => setSelectedGame('DigDug') },
-		{ key: 'Galaga', label: '🛸 Galaga', onClick: () => setSelectedGame('Galaga') },
 		{ key: 'Joust', label: '🦅 Joust', onClick: () => setSelectedGame('Joust') },
 		{ key: 'SpaceInvaders', label: '👾 Space Invaders', onClick: () => setSelectedGame('SpaceInvaders') },
 		{ key: 'PaperBoy', label: '🚴 Paper Boy', onClick: () => setSelectedGame('PaperBoy') },
-	{ key: 'Qbert', label: '🟡 Q*bert', onClick: () => setSelectedGame('Qbert') },
-	{ key: 'Rampage', label: '🦍 Rampage', onClick: () => setSelectedGame('Rampage') },
-	{ key: 'StreetFighter', label: '🥋 Street Fighter', onClick: () => setSelectedGame('StreetFighter') },
-	{ key: 'RType', label: '🚀 R-Type', onClick: () => setSelectedGame('RType') },
+		{ key: 'Qbert', label: '🟡 Q*bert', onClick: () => setSelectedGame('Qbert') },
+		{ key: 'Rampage', label: '🦍 Rampage', onClick: () => setSelectedGame('Rampage') },
+		{ key: 'StreetFighter', label: '🥋 Street Fighter', onClick: () => setSelectedGame('StreetFighter') },
+		{ key: 'RType', label: '🚀 R-Type', onClick: () => setSelectedGame('RType') },
 	];
 
 	return (
