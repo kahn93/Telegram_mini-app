@@ -255,7 +255,7 @@
   width: 100vw;
   height: 100vh;
   background: rgba(0,0,0,0.35);
-  z-index: 1000;
+  z-index: 3000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -360,7 +360,7 @@ p {
   width: 100vw;
   max-width: 480px;
   min-width: 240px;
-  height: 48px;
+  height: 24px;
   margin: 0 auto;
   padding: 0 4px;
   display: flex;
@@ -371,11 +371,11 @@ p {
   gap: 6px;
   position: fixed;
   left: 50%;
-  top: 0;
-  bottom: unset;
+  top: unset;
+  bottom: 0;
   transform: translateX(-50%);
   background: #192259;
-  z-index: 2000;
+  z-index: 4000;
   box-shadow: 0 2px 12px rgba(0,0,0,0.12);
   border-radius: 0 0 16px 16px;
   scrollbar-width: none; /* Firefox */
@@ -399,7 +399,11 @@ p {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
+    min-width: 24px;
+    height: 16px;
+    font-size: 8px;
+    padding: 0 5px;
+  }
 .menu .btn:active, .menu .btn:focus {
   background: #3a4ad9;
 }
