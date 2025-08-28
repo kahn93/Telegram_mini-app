@@ -38,12 +38,49 @@ const Pacman: React.FC<{ userid?: string; muted?: boolean }> = ({ userid: propUs
     }
   }, [propUserId]);
 
-  const [pacman, setPacman] = useState(INITIAL_PACMAN);
-  const [ghost, setGhost] = useState(INITIAL_GHOST);
-  const [dots, setDots] = useState(DOTS);
-  const [score, setScore] = useState(0);
-  const [finalScore, setFinalScore] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
+  const [pacman, setPacman] = useState(() => {
+    const stored = localStorage.getItem('pacman_pacman');
+    return stored ? JSON.parse(stored) : INITIAL_PACMAN;
+  });
+  const [ghost, setGhost] = useState(() => {
+    const stored = localStorage.getItem('pacman_ghost');
+    return stored ? JSON.parse(stored) : INITIAL_GHOST;
+  });
+  const [dots, setDots] = useState(() => {
+    const stored = localStorage.getItem('pacman_dots');
+    return stored ? JSON.parse(stored) : DOTS;
+  });
+  const [score, setScore] = useState(() => {
+    const stored = localStorage.getItem('pacman_score');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  const [finalScore, setFinalScore] = useState(() => {
+    const stored = localStorage.getItem('pacman_finalScore');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  const [gameOver, setGameOver] = useState(() => {
+    const stored = localStorage.getItem('pacman_gameOver');
+    return stored ? JSON.parse(stored) : false;
+  });
+  // Auto-save logic
+  useEffect(() => {
+    localStorage.setItem('pacman_pacman', JSON.stringify(pacman));
+  }, [pacman]);
+  useEffect(() => {
+    localStorage.setItem('pacman_ghost', JSON.stringify(ghost));
+  }, [ghost]);
+  useEffect(() => {
+    localStorage.setItem('pacman_dots', JSON.stringify(dots));
+  }, [dots]);
+  useEffect(() => {
+    localStorage.setItem('pacman_score', score.toString());
+  }, [score]);
+  useEffect(() => {
+    localStorage.setItem('pacman_finalScore', finalScore.toString());
+  }, [finalScore]);
+  useEffect(() => {
+    localStorage.setItem('pacman_gameOver', JSON.stringify(gameOver));
+  }, [gameOver]);
   const [showGameOverEffect, setShowGameOverEffect] = useState(false);
   const [showScorePop, setShowScorePop] = useState(false);
 
@@ -187,7 +224,7 @@ const Pacman: React.FC<{ userid?: string; muted?: boolean }> = ({ userid: propUs
           {dots.length === 0 ? '🏆 YOU WIN!' : '💀 GAME OVER'}
         </div>
       )}
-      <div style={{ color: '#ffe600', fontWeight: 600, fontSize: 14, marginTop: 8, textShadow: '0 0 6px #fff' }}>User: {userId || 'Not connected'}</div>
+  {/* Removed unused userId display for consistency */}
       <style>{`
         @keyframes popSuccess {
           0% { transform: scale(1); }

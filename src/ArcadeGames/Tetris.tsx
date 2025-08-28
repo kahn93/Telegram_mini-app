@@ -45,10 +45,35 @@ const Tetris: React.FC<{ userid?: string; muted?: boolean }> = ({ userid: propUs
     }
   }, [propUserId]);
 
-  const [board, setBoard] = useState(Array.from({ length: ROWS }, () => Array(COLS).fill(0)));
-  const [current, setCurrent] = useState(randomShape());
-  const [score, setScore] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
+  const [board, setBoard] = useState(() => {
+    const stored = localStorage.getItem('tetris_board');
+    return stored ? JSON.parse(stored) : Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+  });
+  const [current, setCurrent] = useState(() => {
+    const stored = localStorage.getItem('tetris_current');
+    return stored ? JSON.parse(stored) : randomShape();
+  });
+  const [score, setScore] = useState(() => {
+    const stored = localStorage.getItem('tetris_score');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  const [gameOver, setGameOver] = useState(() => {
+    const stored = localStorage.getItem('tetris_gameOver');
+    return stored ? JSON.parse(stored) : false;
+  });
+  // Auto-save logic
+  useEffect(() => {
+    localStorage.setItem('tetris_board', JSON.stringify(board));
+  }, [board]);
+  useEffect(() => {
+    localStorage.setItem('tetris_current', JSON.stringify(current));
+  }, [current]);
+  useEffect(() => {
+    localStorage.setItem('tetris_score', score.toString());
+  }, [score]);
+  useEffect(() => {
+    localStorage.setItem('tetris_gameOver', JSON.stringify(gameOver));
+  }, [gameOver]);
   const [showGameOverEffect, setShowGameOverEffect] = useState(false);
   const [showScorePop, setShowScorePop] = useState(false);
 
@@ -234,7 +259,7 @@ const Tetris: React.FC<{ userid?: string; muted?: boolean }> = ({ userid: propUs
           🧱 GAME OVER
         </div>
       )}
-      <div style={{ color: '#00fff7', fontWeight: 600, fontSize: 14, marginTop: 8, textShadow: '0 0 6px #fff' }}>User: {userId || 'Not connected'}</div>
+  {/* Removed unused userId display for consistency */}
       <style>{`
         @keyframes popSuccess {
           0% { transform: scale(1); }

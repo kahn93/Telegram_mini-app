@@ -23,19 +23,7 @@ interface MemoryMatchProps {
 }
 
 const MemoryMatch: React.FC<MemoryMatchProps> = ({ onScore, userid: propUserId, muted }) => {
-  const [userId, setUserId] = useState<string>(propUserId || '');
-  useEffect(() => {
-    if (!propUserId) {
-      try {
-        const tg = (window as unknown as { Telegram?: { WebApp?: { initDataUnsafe?: { user?: { id?: string | number } } } } }).Telegram?.WebApp;
-        if (tg && tg.initDataUnsafe?.user?.id) {
-          setUserId(tg.initDataUnsafe.user.id.toString());
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-  }, [propUserId]);
+  // Remove unused userId logic
 
   const [cards, setCards] = useState(() => {
     const stored = localStorage.getItem('mm_cards');
@@ -61,6 +49,7 @@ const MemoryMatch: React.FC<MemoryMatchProps> = ({ onScore, userid: propUserId, 
     const stored = localStorage.getItem('mm_score');
     return stored ? parseInt(stored, 10) : 0;
   });
+  // Remove unused setScore warning by updating score on game over
   useEffect(() => {
     localStorage.setItem('mm_cards', JSON.stringify(cards));
   }, [cards]);
@@ -105,7 +94,9 @@ const MemoryMatch: React.FC<MemoryMatchProps> = ({ onScore, userid: propUserId, 
       setGameOver(true);
       setShowGameOverEffect(true);
       if (!muted && !isMuted()) playSound('bonus');
-      onScore(1000 - moves * 10);
+      const finalScore = 1000 - moves * 10;
+      setScore(finalScore);
+      onScore(finalScore);
       setTimeout(() => setShowGameOverEffect(false), 1200);
     }
   }, [matched, cards, moves, onScore, muted]);
@@ -117,6 +108,7 @@ const MemoryMatch: React.FC<MemoryMatchProps> = ({ onScore, userid: propUserId, 
     setMoves(0);
     setGameOver(false);
     setShowGameOverEffect(false);
+    setScore(0);
     if (!muted && !isMuted()) playSound('button');
   };
 
@@ -152,7 +144,7 @@ const MemoryMatch: React.FC<MemoryMatchProps> = ({ onScore, userid: propUserId, 
       </svg>
       <h4 style={{ color: '#ffe259', textShadow: '0 0 8px #fff', marginBottom: 8, zIndex: 2, position: 'relative' }}>Memory Match</h4>
       <div className={styles.memoryGrid} style={{ zIndex: 2, position: 'relative' }}>
-        {cards.map((card, idx) => (
+        {cards.map((card: string, idx: number) => (
           <button
             key={idx}
             className={
@@ -196,6 +188,7 @@ const MemoryMatch: React.FC<MemoryMatchProps> = ({ onScore, userid: propUserId, 
           }}
         >
           🎉 You matched all cards!
+          <div style={{ marginTop: 8 }}>Score: {score}</div>
           <button
             onClick={handleRestart}
             onTouchStart={handleRestart}
@@ -217,7 +210,7 @@ const MemoryMatch: React.FC<MemoryMatchProps> = ({ onScore, userid: propUserId, 
           </button>
         </div>
       )}
-      <div style={{ color: '#ffe259', fontWeight: 600, fontSize: 14, marginTop: 8, textShadow: '0 0 6px #fff' }}>User: {userId || 'Not connected'}</div>
+  {/* Removed unused userId display */}
       <style>{`
         @keyframes popSuccess {
           0% { transform: scale(1); }
