@@ -1,13 +1,22 @@
 // Standalone airdrop metrics logic for Netlify function
 // This file is self-contained and does not import from src/
 
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+function getSupabaseClient() {
+  // Support both Netlify (process.env) and Vite (import.meta.env) environments
+  const env = (typeof process !== 'undefined' && typeof process.env !== 'undefined')
+    ? process.env
+    : (typeof import.meta !== 'undefined' && typeof import.meta.env !== 'undefined'
+      ? import.meta.env
+      : {});
+  const supabaseUrl = env.VITE_SUPABASE_URL || env.SUPABASE_URL || '';
+  const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || '';
+  return createClient(supabaseUrl, supabaseAnonKey);
+}
 
 async function getPlayerMetrics(playerId) {
+  const supabase = getSupabaseClient();
   try {
     // Coins and wallet
     const { data: user, error: userError } = await supabase.from('users').select('coins, ton_wallet').eq('userid', playerId).single();
@@ -62,4 +71,4 @@ async function getPlayerMetrics(playerId) {
   }
 }
 
-module.exports = { getPlayerMetrics };
+export { getPlayerMetrics };

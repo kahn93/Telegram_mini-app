@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { useRef, useEffect, useState } from 'react';
 import LeaderboardMini from './LeaderboardMini';
@@ -424,6 +423,7 @@ const DonkeyKong: React.FC<DonkeyKongProps> = ({ userid: propUserId, muted }) =>
         <div style={{ margin: 8 }}>
           <button
             onClick={restart}
+            onTouchStart={restart}
             style={{
               marginRight: 12,
               background: '#fd79a8',
@@ -440,6 +440,7 @@ const DonkeyKong: React.FC<DonkeyKongProps> = ({ userid: propUserId, muted }) =>
           >Restart</button>
           <button
             onClick={handleSubmitScore}
+            onTouchStart={handleSubmitScore}
             disabled={submitting}
             style={{
               background: '#ffe259',

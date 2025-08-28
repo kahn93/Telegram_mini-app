@@ -361,6 +361,7 @@ const Joust: React.FC<JoustProps> = ({ userid: propUserId, muted }) => {
         <div style={{ margin: 8 }}>
           <button
             onClick={restart}
+            onTouchStart={restart}
             style={{
               marginRight: 12,
               background: '#fd79a8',
@@ -377,6 +378,7 @@ const Joust: React.FC<JoustProps> = ({ userid: propUserId, muted }) => {
           >Restart</button>
           <button
             onClick={handleSubmitScore}
+            onTouchStart={handleSubmitScore}
             disabled={submitting}
             style={{
               background: '#ffe259',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './Upgrades.module.scss';
 import cdollarIcon from '../assets/cdollar.png';
 import earnIcon from '../assets/earn.png';
@@ -29,12 +29,30 @@ const UPGRADE_DEFS = [
 const MAX_LEVEL = 5000;
 
 type UpgradesProps = {
-	upgrades: Record<string, number>;
 	coins: number;
-	onPurchase: (key: string) => void;
 };
 
-const Upgrades: React.FC<UpgradesProps> = ({ upgrades, coins, onPurchase }) => {
+const Upgrades: React.FC<UpgradesProps> = ({ coins }) => {
+	const [upgrades, setUpgrades] = useState(() => {
+		try {
+			return JSON.parse(localStorage.getItem('upgrades') || '{}');
+		} catch {
+			return {};
+		}
+	});
+	useEffect(() => {
+		localStorage.setItem('upgrades', JSON.stringify(upgrades));
+	}, [upgrades]);
+
+	const onPurchase = (key: string) => {
+		setUpgrades((prev) => {
+			const level = prev[key] || 0;
+			const price = UPGRADE_DEFS.find((u) => u.key === key)!.basePrice * Math.pow(2, level);
+			if (coins < price) return prev;
+			return { ...prev, [key]: level + 1 };
+		});
+	};
+
 	return (
 		<div className={styles.upgradesPage}>
 			<h2>Upgrades</h2>
@@ -51,18 +69,18 @@ const Upgrades: React.FC<UpgradesProps> = ({ upgrades, coins, onPurchase }) => {
 							<div className={styles.level}>Level: {level}</div>
 							<div className={styles.value}>Value: +{value}</div>
 							<div className={styles.price}>Price: {price} coins</div>
-														<button
-															className={styles.buyBtn}
-															disabled={coins < price || level >= MAX_LEVEL}
-															onClick={() => onPurchase(u.key)}
-															aria-label={level >= MAX_LEVEL ? `${u.name} maxed out` : `Upgrade ${u.name} for ${price} coins`}
-															tabIndex={0}
-															onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && !(coins < price || level >= MAX_LEVEL)) onPurchase(u.key); }}
-															onFocus={e => e.currentTarget.style.boxShadow = '0 0 0 3px #24308a'}
-															onBlur={e => e.currentTarget.style.boxShadow = 'none'}
-														>
-															{level >= MAX_LEVEL ? 'Maxed' : 'Upgrade'}
-														</button>
+							<button
+								className={styles.buyBtn}
+								disabled={coins < price || level >= MAX_LEVEL}
+								onClick={() => onPurchase(u.key)}
+								aria-label={level >= MAX_LEVEL ? `${u.name} maxed out` : `Upgrade ${u.name} for ${price} coins`}
+								tabIndex={0}
+								onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && !(coins < price || level >= MAX_LEVEL)) onPurchase(u.key); }}
+								onFocus={e => e.currentTarget.style.boxShadow = '0 0 0 3px #24308a'}
+								onBlur={e => e.currentTarget.style.boxShadow = 'none'}
+							>
+								{level >= MAX_LEVEL ? 'Maxed' : 'Upgrade'}
+							</button>
 						</div>
 					);
 				})}

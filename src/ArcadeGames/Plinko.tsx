@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './GameStyles.css';
 import { submitScoreSupabase } from './leaderboardSupabase';
 import { playSound, isMuted } from '../soundManager';
@@ -29,7 +29,18 @@ const Plinko: React.FC<PlinkoProps> = ({ userid: propUserId, muted }: PlinkoProp
 
   const [ballCol, setBallCol] = useState(Math.floor(COLS / 2));
   const [row, setRow] = useState(0);
-  const [score, setScore] = useState(0);
+  const [score, setScore] = useState(() => {
+    const stored = localStorage.getItem('plinko_score');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  const [balls, setBalls] = useState(() => {
+    const stored = localStorage.getItem('plinko_balls');
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [plinkoState, setPlinkoState] = useState(() => {
+    const stored = localStorage.getItem('plinko_state');
+    return stored ? JSON.parse(stored) : {};
+  });
   const [gameOver, setGameOver] = useState(false);
   const [showGameOverEffect, setShowGameOverEffect] = useState(false);
   const [showScorePop, setShowScorePop] = useState(false);
@@ -49,6 +60,16 @@ const Plinko: React.FC<PlinkoProps> = ({ userid: propUserId, muted }: PlinkoProp
       return () => clearTimeout(t);
     }
   }, [gameOver, muted]);
+
+  useEffect(() => {
+    localStorage.setItem('plinko_score', score.toString());
+  }, [score]);
+  useEffect(() => {
+    localStorage.setItem('plinko_balls', JSON.stringify(balls));
+  }, [balls]);
+  useEffect(() => {
+    localStorage.setItem('plinko_state', JSON.stringify(plinkoState));
+  }, [plinkoState]);
 
   const dropBall = () => {
     if (gameOver) return;
@@ -148,6 +169,10 @@ const Plinko: React.FC<PlinkoProps> = ({ userid: propUserId, muted }: PlinkoProp
       {renderBuckets()}
       <button
         onClick={() => {
+          if (!muted && !isMuted()) playSound('button');
+          dropBall();
+        }}
+        onTouchStart={() => {
           if (!muted && !isMuted()) playSound('button');
           dropBall();
         }}

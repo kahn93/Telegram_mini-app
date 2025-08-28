@@ -1,6 +1,32 @@
+// Tab switcher for Tasks and Airdrop, like MarketplaceNFTTabs
+const TasksAirdropTabs: React.FC = () => {
+  const [tab, setTab] = useState<'tasks' | 'airdrop'>('tasks');
+  return (
+    <div>
+      <div className={styles.tabSwitcherRow}>
+        <button
+          className={tab === 'tasks' ? styles.tabSwitcherBtnActive : styles.tabSwitcherBtn}
+          onClick={() => setTab('tasks')}
+        >
+          Tasks
+        </button>
+        <button
+          className={tab === 'airdrop' ? styles.tabSwitcherBtnActive : styles.tabSwitcherBtn}
+          onClick={() => setTab('airdrop')}
+        >
+          Airdrop
+        </button>
+      </div>
+      {tab === 'tasks' ? <Tasks /> : <Airdrop onBackToTasks={() => setTab('tasks')} />}
+    </div>
+  );
+};
+import rocketImg from './assets/rocket.png';
+import crownImg from './assets/crown.png';
+import cdollarImg from './assets/cdollar.png';
+import trophyImg from './assets/trophy.png';
 import GuardianAngel from './Pages/GuardianAngel';
 import { playMusic, stopMusic, isMuted, toggleMute } from './soundManager';
-import Marketplace from './Pages/Marketplace';
 import { triggerAnalytics } from './utils/webhooks';
 import { requestNotificationPermission, sendBrowserNotification } from './notifications';
 import { useState, useEffect, useCallback } from 'react';
@@ -25,22 +51,10 @@ import Friends from './Pages/Friends';
 import Profile from './Pages/Profile';
 import Chat from './Pages/Chat';
 import Events from './Pages/Events';
-import NFTGallery from './Pages/NFTGallery';
 
 
-// MarketplaceNFTTabs: unified tabbed view for Marketplace and NFT Gallery
-const MarketplaceNFTTabs: React.FC<{ userId: string }> = ({ userId }) => {
-  const [tab, setTab] = useState<'marketplace' | 'nfts'>('marketplace');
-  return (
-    <div>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, justifyContent: 'center' }}>
-        <button onClick={() => setTab('marketplace')} style={{ fontWeight: tab === 'marketplace' ? 700 : 400, background: tab === 'marketplace' ? '#ffe259' : '#fff', borderRadius: 6, padding: '4px 16px', border: '1px solid #eee' }}>Marketplace Listings</button>
-        <button onClick={() => setTab('nfts')} style={{ fontWeight: tab === 'nfts' ? 700 : 400, background: tab === 'nfts' ? '#ffe259' : '#fff', borderRadius: 6, padding: '4px 16px', border: '1px solid #eee' }}>NFT Gallery & Mint</button>
-      </div>
-      {tab === 'marketplace' ? <Marketplace /> : <NFTGallery userId={userId} />}
-    </div>
-  );
-};
+
+
 import UserAnalytics from './Pages/UserAnalytics';
 import Boosts from './Pages/Boosts';
 import Arcade from './Pages/Arcade';
@@ -79,7 +93,6 @@ function getTelegramUserId(): string | undefined {
   } catch (e) {
     // Ignore Telegram detection errors
   }
-  return undefined;
 }
 
 
@@ -121,10 +134,15 @@ function App() {
       // Optionally: show animation or notification for trophy unlock
     }
   };
-  const [coinCount, setCoinCount] = useState<number>(0);
+  const [coinCount, setCoinCount] = useState<number>(() => {
+    const stored = localStorage.getItem('coinCount');
+    return stored ? parseFloat(stored) : 0;
+  });
   // Track last saved coin count for auto-save
   const [lastSavedCoin, setLastSavedCoin] = useState<number>(0);
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(() => {
+    return localStorage.getItem('selectedCountry') || null;
+  });
   const [userId, setUserId] = useState<string>(() => {
     // Prefer Telegram userId if available
     return getTelegramUserId() || localStorage.getItem('userId') || '';
@@ -147,7 +165,7 @@ function App() {
     if (!isMuted()) playMusic('arcade_bgm', true, 0.35);
     return () => stopMusic();
   }, []);
-  const [currentView, setCurrentView] = useState<string>('coin');
+  const [currentView, setCurrentView] = useState<string>(() => localStorage.getItem('currentView') || 'coin');
   const [energy, setEnergy] = useState<number>(getInitialEnergy());
   // Shop state
   const [purchased, setPurchased] = useState<{ [key: string]: boolean }>(() => {
@@ -157,7 +175,6 @@ function App() {
       return {};
     }
   });
-  // Upgrades state
   const [upgrades, setUpgrades] = useState<Record<string, number>>(() => {
     try {
       return JSON.parse(localStorage.getItem('upgrades') || '{}');
@@ -166,10 +183,22 @@ function App() {
     }
   });
   // Multiplier state
-  const [coinMultiplier, setCoinMultiplier] = useState(1);
-  const [energyMultiplier, setEnergyMultiplier] = useState(1);
+  const [coinMultiplier, setCoinMultiplier] = useState(() => {
+    const stored = localStorage.getItem('coinMultiplier');
+    return stored ? parseFloat(stored) : 1;
+  });
+  const [energyMultiplier, setEnergyMultiplier] = useState(() => {
+    const stored = localStorage.getItem('energyMultiplier');
+    return stored ? parseFloat(stored) : 1;
+  });
   // Timed effects state
-  const [activeEffects, setActiveEffects] = useState<{ [key: string]: number }>({});
+  const [activeEffects, setActiveEffects] = useState<{ [key: string]: number }>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('activeEffects') || '{}');
+    } catch {
+      return {};
+    }
+  });
   // Passive income effect (with passive boost and upgrades)
   useEffect(() => {
     const interval = setInterval(() => {
@@ -209,6 +238,10 @@ function App() {
           setCoinCount(user.coins);
           setLastSavedCoin(user.coins);
           setSelectedCountry(user.country);
+          // In the initialization logic, after setSelectedCountry(user.country):
+          if (user.country) {
+            localStorage.setItem('selectedCountry', user.country);
+          }
         }
       } else {
         // Check for referral code in URL
@@ -304,6 +337,7 @@ function App() {
   const handleCountryChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
     const country = event.target.value;
     setSelectedCountry(country);
+    localStorage.setItem('selectedCountry', country);
     if (userId) {
       await addUserSupabase({ userid: userId, country, coins: 0 });
     }
@@ -424,52 +458,51 @@ function App() {
     }
 
   switch (currentView) {
-    case 'Marketplace':
-      return <MarketplaceNFTTabs userId={userId} />;
-      case 'AdminAnalytics':
-        return <AdminAnalytics />;
-      case 'coin':
-        return (
-          <div className={styles.centerContent}>
-            {/* Top row: coins per tap (left), coin balance (center), passive income (right) */}
-            <div className={styles.topRow}>
-              <div className={styles.coinsPerTapTopLeft}>
-                <CoinsPerTap coinCount={coinCount} />
-              </div>
-              <div className={styles.coinBalanceCenter}>
-                <CoinBalance coinCount={Math.floor(coinCount)} />
-              </div>
-              <div className={styles.passiveIncomeTopRight}>
-                <PassiveIncome coinsPerHour={getPassiveIncomePerHour()} />
-              </div>
+    case 'AdminAnalytics':
+      return <AdminAnalytics />;
+    case 'coin':
+      return (
+        <div className={styles.centerContent}>
+          {/* Top row: coins per tap (left), coin balance (center), passive income (right) */}
+          <div className={styles.topRow}>
+            <div className={styles.coinsPerTapTopLeft}>
+              <CoinsPerTap coinCount={coinCount} />
             </div>
-            <EnergyBar energy={energy} maxEnergy={MAX_ENERGY} />
-            <p>Country: {selectedCountry}</p>
-            <MiningButton onClick={handleButtonClick} imgSrc={clickImg} />
+            <div className={styles.coinBalanceCenter}>
+              <CoinBalance coinCount={Math.floor(coinCount)} />
+            </div>
+            <div className={styles.passiveIncomeTopRight}>
+              <PassiveIncome coinsPerHour={getPassiveIncomePerHour()} />
+            </div>
           </div>
-        );
-      case 'leaderboard':
-        return <Leaderboard />;
-      case 'Shop':
-        return <Shop onPurchase={handleShopPurchase} purchased={purchased} />;
-      case 'Trophies': {
-        const shopPurchasesCount = Object.keys(purchased).length;
-        return (
-          <Trophies
-            coinCount={Math.floor(coinCount)}
-            energy={Math.floor(energy)}
-            shopPurchases={shopPurchasesCount}
-            earned={trophiesEarned}
-            onEarn={handleTrophyEarn}
-          />
-        );
-      }
-      case 'Tasks':
-        return <Tasks />;
+          <EnergyBar energy={energy} maxEnergy={MAX_ENERGY} />
+          <p>Country: {selectedCountry}</p>
+          <MiningButton onClick={handleButtonClick} imgSrc={clickImg} />
+        </div>
+      );
+    case 'leaderboard':
+      return <Leaderboard />;
+    case 'Shop':
+      return <Shop onPurchase={handleShopPurchase} purchased={purchased} />;
+    case 'Trophies': {
+      const shopPurchasesCount = Object.keys(purchased).length;
+      return (
+        <Trophies
+          coinCount={Math.floor(coinCount)}
+          energy={Math.floor(energy)}
+          shopPurchases={shopPurchasesCount}
+          earned={trophiesEarned}
+          onEarn={handleTrophyEarn}
+        />
+      );
+    }
+    case 'Tasks': {
+      return <TasksAirdropTabs />;
+    }
       case 'Upgrades':
         return <Upgrades upgrades={upgrades} coins={coinCount} onPurchase={handleUpgradePurchase} />;
       case 'Friends':
-        return <Friends />;
+        return <Friends setCurrentView={setCurrentView} />;
   case 'Boosts':
     return (
       <Boosts
@@ -511,14 +544,12 @@ function App() {
         return <Chat userId={userId} />;
       case 'events':
         return <Events userId={userId} />;
-      case 'nfts':
-        return <NFTGallery userId={userId} />;
       case 'useranalytics':
         return <UserAnalytics userId={userId} />;
       case 'guardianangel':
         return <GuardianAngel userId={userId} />;
       default:
-        return null;
+  return <div className={styles.fallbackError}>Page not found or invalid view: {currentView}</div>;
     }
   };
 
@@ -529,30 +560,55 @@ function App() {
           <div className={styles.app}>
             {/* Global mute/unmute button */}
             <button
+              className={isMuted() ? styles.muteBtnMuted : styles.muteBtn}
               onClick={() => {
                 toggleMute();
                 if (!isMuted()) playMusic('arcade_bgm', true, 0.35);
-              }}
-              style={{
-                position: 'fixed',
-                top: 18,
-                right: 18,
-                zIndex: 1000,
-                background: isMuted() ? '#eee' : 'linear-gradient(135deg,#ffe259,#ffa751,#43cea2,#185a9d)',
-                color: isMuted() ? '#888' : '#222',
-                border: 'none',
-                borderRadius: 24,
-                padding: '10px 18px',
-                fontWeight: 700,
-                fontSize: 18,
-                boxShadow: '0 2px 12px #24308a22',
-                transition: 'background 0.2s, color 0.2s',
-                cursor: 'pointer',
               }}
               aria-label={isMuted() ? 'Unmute' : 'Mute'}
             >
               {isMuted() ? '🔇 Sound Off' : '🔊 Sound On'}
             </button>
+
+            {/* Quick nav buttons row, fixed at bottom above navbar, only on home page */}
+
+            {/* Always show quick nav buttons, and make them toggles */}
+            <div className={styles.quickNavRow}>
+              {/* Boosts (rocket) on far left */}
+              <button
+                className={styles.boostsButton}
+                title="Boosts"
+                onClick={() => setCurrentView(currentView === 'Boosts' ? 'coin' : 'Boosts')}
+              >
+                <img src={rocketImg} alt="Boosts" className={`${styles.quickNavIcon} ${styles.quickNavIconBoosts}`} />
+              </button>
+              {/* Trophies and Friends in center */}
+              <div className={styles.quickNavCenter}>
+                <button
+                  className={styles.quickNavBtn}
+                  title="Trophies"
+                  onClick={() => setCurrentView(currentView === 'Trophies' ? 'coin' : 'Trophies')}
+                >
+                  <img src={trophyImg} alt="Trophies" className={styles.quickNavIcon} />
+                </button>
+                <button
+                  className={styles.quickNavBtn}
+                  title="Friends"
+                  onClick={() => setCurrentView(currentView === 'Friends' ? 'coin' : 'Friends')}
+                >
+                  <img src={crownImg} alt="Friends" className={styles.quickNavIcon} />
+                </button>
+              </div>
+              {/* Upgrades (cdollar) on far right */}
+              <button
+                className={styles.quickNavBtn}
+                title="Upgrades"
+                onClick={() => setCurrentView(currentView === 'Upgrades' ? 'coin' : 'Upgrades')}
+              >
+                <img src={cdollarImg} alt="Upgrades" className={styles.quickNavIcon} />
+              </button>
+            </div>
+
             {renderContent()}
             {selectedCountry && (
               <NavBar onNavigate={setCurrentView} />

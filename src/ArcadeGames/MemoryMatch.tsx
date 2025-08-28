@@ -37,19 +37,51 @@ const MemoryMatch: React.FC<MemoryMatchProps> = ({ onScore, userid: propUserId, 
     }
   }, [propUserId]);
 
-  const [cards, setCards] = useState(() => shuffle(CARDS));
-  const [flipped, setFlipped] = useState<number[]>([]);
-  const [matched, setMatched] = useState<number[]>([]);
-  const [moves, setMoves] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
-  const [showGameOverEffect, setShowGameOverEffect] = useState(false);
-  const [showScorePop, setShowScorePop] = useState(false);
+  const [cards, setCards] = useState(() => {
+    const stored = localStorage.getItem('mm_cards');
+    return stored ? JSON.parse(stored) : shuffle(CARDS);
+  });
+  const [flipped, setFlipped] = useState<number[]>(() => {
+    const stored = localStorage.getItem('mm_flipped');
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [matched, setMatched] = useState<number[]>(() => {
+    const stored = localStorage.getItem('mm_matched');
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [moves, setMoves] = useState(() => {
+    const stored = localStorage.getItem('mm_moves');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  const [gameOver, setGameOver] = useState(() => {
+    const stored = localStorage.getItem('mm_gameOver');
+    return stored ? JSON.parse(stored) : false;
+  });
+  const [score, setScore] = useState(() => {
+    const stored = localStorage.getItem('mm_score');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  useEffect(() => {
+    localStorage.setItem('mm_cards', JSON.stringify(cards));
+  }, [cards]);
+  useEffect(() => {
+    localStorage.setItem('mm_flipped', JSON.stringify(flipped));
+  }, [flipped]);
+  useEffect(() => {
+    localStorage.setItem('mm_matched', JSON.stringify(matched));
+  }, [matched]);
+  useEffect(() => {
+    localStorage.setItem('mm_moves', moves.toString());
+  }, [moves]);
+  useEffect(() => {
+    localStorage.setItem('mm_gameOver', JSON.stringify(gameOver));
+  }, [gameOver]);
+  useEffect(() => {
+    localStorage.setItem('mm_score', score.toString());
+  }, [score]);
 
-  const handleFlip = (idx: number) => {
-    if (flipped.length === 2 || flipped.includes(idx) || matched.includes(idx) || gameOver) return;
-    setFlipped((prev) => [...prev, idx]);
-    if (!muted && !isMuted()) playSound('button');
-  };
+  const [showScorePop, setShowScorePop] = useState(false);
+  const [showGameOverEffect, setShowGameOverEffect] = useState(false);
 
   useEffect(() => {
     if (flipped.length === 2) {
@@ -128,6 +160,7 @@ const MemoryMatch: React.FC<MemoryMatchProps> = ({ onScore, userid: propUserId, 
               (flipped.includes(idx) || matched.includes(idx) ? ' ' + styles.flipped : '')
             }
             onClick={() => handleFlip(idx)}
+            onTouchStart={() => handleFlip(idx)}
             disabled={flipped.length === 2 || matched.includes(idx) || gameOver}
             style={{
               boxShadow: flipped.includes(idx) || matched.includes(idx)
@@ -165,6 +198,7 @@ const MemoryMatch: React.FC<MemoryMatchProps> = ({ onScore, userid: propUserId, 
           🎉 You matched all cards!
           <button
             onClick={handleRestart}
+            onTouchStart={handleRestart}
             style={{
               marginLeft: 12,
               background: '#ffe259',

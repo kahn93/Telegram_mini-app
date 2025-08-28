@@ -1,9 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import * as React from 'react';
+import { useEffect, useState } from 'react';
 import { getActiveEvents, joinEvent, Event } from '../Database/eventsSupabase';
 import trophyIcon from '../assets/trophy.png';
 import listIcon from '../assets/list.png';
 
-const Events: React.FC<{ userId: string }> = ({ userId }) => {
+interface EventsProps {
+  userId: string;
+}
+
+const Events: React.FC<EventsProps> = ({ userId }) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [joined, setJoined] = useState<Record<number, boolean>>({});
@@ -27,6 +32,11 @@ const Events: React.FC<{ userId: string }> = ({ userId }) => {
   return (
     <div style={{ maxWidth: 400, margin: '24px auto', background: '#f8fafc', borderRadius: 12, padding: 16, boxShadow: '0 2px 8px #24308a11' }}>
       <h3 style={{ color: '#24308a', fontWeight: 800, fontSize: 16, marginBottom: 12 }}>Seasonal Events & Challenges</h3>
+      {/* Static event banner for Summer Memory Match! */}
+      <div style={{ background: '#ffe259', color: '#24308a', borderRadius: 10, padding: '10px 18px', fontWeight: 700, marginBottom: 16, boxShadow: '0 2px 8px #24308a22' }}>
+        <span style={{ fontSize: 16 }}>🌞 Summer Memory Match!</span>
+        <div style={{ fontSize: 13, fontWeight: 400 }}>Play Memory Match for bonus rewards this week!</div>
+      </div>
       {loading ? <div>Loading events...</div> : events.length === 0 ? <div style={{ color: '#888' }}>No active events right now.</div> : (
         events.map(evt => (
           <div key={evt.id} style={{ background: '#fff', borderRadius: 8, marginBottom: 12, padding: 12, boxShadow: '0 1px 4px #24308a08' }}>

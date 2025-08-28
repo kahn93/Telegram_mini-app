@@ -249,6 +249,10 @@ const DangerousBeautySlot: React.FC<DangerousBeautySlotProps> = ({ userId: propU
             if (!muted && !isMuted()) playSound('button');
             handleSpin();
           }}
+          onTouchStart={() => {
+            if (!muted && !isMuted()) playSound('button');
+            handleSpin();
+          }}
           disabled={!canSpin}
           style={{
             background: canSpin ? 'linear-gradient(135deg,#e17055,#fd79a8,#fff)' : '#ccc',

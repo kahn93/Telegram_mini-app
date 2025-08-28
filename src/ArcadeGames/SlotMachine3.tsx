@@ -242,6 +242,10 @@ const SlotMachine3: React.FC<SlotMachine3Props> = ({ userId: propUserId, onBack,
             if (!muted && !isMuted()) playSound('button');
             handleSpin();
           }}
+          onTouchStart={() => {
+            if (!muted && !isMuted()) playSound('button');
+            handleSpin();
+          }}
           disabled={!canSpin}
           style={{
             background: canSpin ? 'linear-gradient(135deg,#e1b12c,#fbc531,#fffbe6)' : '#ccc',

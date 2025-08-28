@@ -1,12 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 
 
 import styles from './Shop.module.scss';
 
-import { logEvent } from '../analytics';
 import { TonConnectButton, useTonConnectUI } from '@tonconnect/ui-react';
-import { RECEIVER_WALLET } from '../Database/tonWallet';
 import coinIcon from '../assets/cdollar.png';
 import energyIcon from '../assets/ewallet.png';
 import autoClickerIcon from '../assets/turbo.png';
@@ -31,134 +29,106 @@ const shopItems = [
 	{ label: 'Golden Tap', desc: '+100/tap', price: 2.5, effect: 'goldentap', icon: goldenTapIcon },
 ];
 
-
-
-
 interface ShopProps {
 	onPurchase: (item: { label: string; value?: number; effect?: string }) => void;
-	purchased: { [key: string]: boolean };
 }
 
-
-const Shop: React.FC<ShopProps> = ({ onPurchase, purchased }) => {
+const Shop: React.FC<ShopProps> = ({ onPurchase }) => {
+	const [tab, setTab] = useState<'shop'>('shop');
 	const [txStatus, setTxStatus] = useState<string | null>(null);
 	const [loading, setLoading] = useState<string | null>(null); // item label if loading
 	const [tonConnectUI] = useTonConnectUI();
 	const [walletWarning, setWalletWarning] = useState<string | null>(null);
+	const [purchased, setPurchased] = useState<{ [key: string]: boolean }>(() => {
+		try {
+			return JSON.parse(localStorage.getItem('purchasedItems') || '{}');
+		} catch {
+			return {};
+		}
+	});
 
+	useEffect(() => {
+		localStorage.setItem('purchasedItems', JSON.stringify(purchased));
+	}, [purchased]);
 
+	// Purchase handler
+	const handlePurchase = (item: { label: string; value?: number; effect?: string }) => {
+		onPurchase(item);
+	};
 
-		// Purchase handler
-		const handlePurchase = async (item: { label: string; price: number; value?: number; effect?: string }) => {
-			setTxStatus(null);
-			setWalletWarning(null);
-			setLoading(item.label);
-			try {
-				// Check if wallet is connected
-				if (!tonConnectUI.account) {
-					setWalletWarning('Please connect your TON wallet before making a purchase.');
-					setLoading(null);
-					return;
-				}
-				await tonConnectUI.sendTransaction({
-					validUntil: Math.floor(Date.now() / 1000) + 360,
-					messages: [
-						{
-							address: RECEIVER_WALLET,
-							amount: (item.price * 1e9).toString(), // TON to nanoTON
-						},
-					],
-				});
-				setTxStatus(`✅ Purchase successful: ${item.label}`);
-				onPurchase(item);
-				// Log analytics event
-				const userId = localStorage.getItem('userId') || 'unknown';
-				await logEvent(userId, 'shop_purchase', { item: item.label, price: item.price });
-			} catch (e: unknown) {
-				let msg = 'Transaction cancelled or failed.';
-				if (typeof e === 'object' && e && 'message' in e && typeof (e as { message?: unknown }).message === 'string') {
-					msg += `\n${(e as { message: string }).message}`;
-				}
-				setTxStatus(msg);
-			}
-			setLoading(null);
+	const itemWidth = 152, itemHeight = 15;
+	const centerX = (600 - itemWidth) / 2;
+	const startY = 20 - 32;
+	const gapY = 32;
+	const itemCount = shopItems.length;
+	const itemPositions = Array.from({ length: itemCount }, (_, i) => {
+		let shift = 64;
+		if (i === 0) shift = 96 + 32;
+		else if (i === 1) shift = 64 + 32;
+		else if (i === 2) shift = 32 + 32 + 8;
+		else shift += 16;
+		let down = 0;
+		if (i >= 3) down = (i - 2) * 16;
+		return {
+			x: centerX,
+			y: startY + i * gapY - shift + down,
+			width: itemWidth,
+			height: itemHeight,
 		};
+	});
 
-			return (
+	return (
+		<div>
+			<div style={{ display: 'flex', gap: 8, marginBottom: 16, justifyContent: 'center' }}>
+				<button onClick={() => setTab('shop')} style={{ fontWeight: tab === 'shop' ? 700 : 400, background: tab === 'shop' ? '#ffe259' : '#fff', borderRadius: 6, padding: '4px 16px', border: '1px solid #eee' }}>Shop</button>
+			</div>
+			{tab === 'shop' && (
 				<div className={styles.shopContainer}>
-					{/* Shop title removed as requested */}
-											<div className={styles.shopAbsoluteLayout} style={{ width: 600, height: 600, position: 'relative', margin: '0 auto' }}>
-												{(() => {
-													// Use latest exported layout from LayoutEditor
-													// Organize items into two columns, starting at the top edge and stopping above wallet connect button
-													// Center all items horizontally and shift up a bit
-													const itemWidth = 152, itemHeight = 15;
-													const centerX = (600 - itemWidth) / 2; // 600 is container width
-													const startY = 20 - 32; // shift up by 1 grid block (32px)
-													const gapY = 32; // vertical gap between items
-													const itemCount = shopItems.length;
-													const itemPositions = Array.from({ length: itemCount }, (_, i) => {
-														let shift = 64; // default shift: 2 grid blocks
-																// Shift all items up by an additional half grid block (16px)
-																	if (i === 0) shift = 96 + 32; // 3 grid blocks + 2 halfs
-																	else if (i === 1) shift = 64 + 32; // 2 grid blocks + 2 halfs
-																	else if (i === 2) shift = 32 + 32 + 8; // 1 grid block + 2 halfs + 8px up
-																	else shift += 16; // all other items, add 16px
-														// Move the fourth and below down by half a grid block (16px) each
-														let down = 0;
-														if (i >= 3) down = (i - 2) * 16;
-														return {
-															x: centerX,
-															y: startY + i * gapY - shift + down,
-															width: itemWidth,
-															height: itemHeight,
-														};
-													});
-															return shopItems.map((item, idx) => {
-																const pos = itemPositions[idx] || { x: 0, y: 0, width: 100, height: 50 };
-																return (
-																	<div
-																		key={item.label}
-																		className={styles.shopItemAbsolute}
-																		style={{
-																			position: 'absolute',
-																			left: pos.x,
-																			top: pos.y,
-																			width: pos.width,
-																			height: pos.height,
-																			boxSizing: 'border-box',
-																			background: 'none',
-																		}}
-																	>
-																		<img src={item.icon} alt={item.label} style={{ width: 24, height: 24, marginRight: 8 }} />
-																		<div>
-																			<div style={{ fontWeight: 700, color: '#000' }}>{item.label}</div>
-																			<div style={{ fontSize: '0.85em', color: '#000' }}>{item.desc}</div>
-																		</div>
-																		  <div style={{ fontWeight: 700, color: '#000', marginLeft: 8 }}>{item.price} TON</div>
-																		<button
-																			className={styles.shopBuyBtn}
-																			onClick={() => handlePurchase(item)}
-																			disabled={!!purchased[item.label] || loading === item.label}
-																		>
-																			{loading === item.label ? '...' : purchased[item.label] ? 'Owned' : 'Buy'}
-																		</button>
-																	</div>
-																);
-															});
-												})()}
-											</div>
-									<div className={styles.shopActions}>
-										<TonConnectButton />
+					<div className={styles.shopAbsoluteLayout} style={{ width: 600, height: 600, position: 'relative', margin: '0 auto' }}>
+						{shopItems.map((item, idx) => {
+							const pos = itemPositions[idx] || { x: 0, y: 0, width: 100, height: 50 };
+							return (
+								<div
+									key={item.label}
+									className={styles.shopItemAbsolute}
+									style={{
+										position: 'absolute',
+										left: pos.x,
+										top: pos.y,
+										width: pos.width,
+										height: pos.height,
+										boxSizing: 'border-box',
+										background: 'none',
+									}}
+								>
+									<img src={item.icon} alt={item.label} style={{ width: 24, height: 24, marginRight: 8 }} />
+									<div>
+										<div style={{ fontWeight: 700, color: '#000' }}>{item.label}</div>
+										<div style={{ fontSize: '0.85em', color: '#000' }}>{item.desc}</div>
 									</div>
-								{walletWarning && (
-									<div style={{ color: 'red', fontWeight: 600, margin: '8px 0' }}>{walletWarning}</div>
-								)}
-								{txStatus && (
-									<div style={{
-										animation: txStatus.startsWith('✅') ? 'popSuccess 0.5s' : undefined
-									}}>{txStatus}</div>
-								)}
+									<div style={{ fontWeight: 700, color: '#000', marginLeft: 8 }}>{item.price} TON</div>
+									<button
+										className={styles.shopBuyBtn}
+										onClick={() => handlePurchase(item)}
+										disabled={!!purchased[item.label] || loading === item.label}
+									>
+										{loading === item.label ? '...' : purchased[item.label] ? 'Owned' : 'Buy'}
+									</button>
+								</div>
+							);
+						})}
+					</div>
+					<div className={styles.shopActions}>
+						<TonConnectButton />
+					</div>
+					{walletWarning && (
+						<div style={{ color: 'red', fontWeight: 600, margin: '8px 0' }}>{walletWarning}</div>
+					)}
+					{txStatus && (
+						<div style={{
+							animation: txStatus.startsWith('✅') ? 'popSuccess 0.5s' : undefined
+						}}>{txStatus}</div>
+					)}
 					<style>{`
 						@keyframes popSuccess {
 							0% { transform: scale(0.8); opacity: 0.5; }
@@ -167,7 +137,9 @@ const Shop: React.FC<ShopProps> = ({ onPurchase, purchased }) => {
 						}
 					`}</style>
 				</div>
-			);
+			)}
+		</div>
+	);
 };
 
 export default Shop;

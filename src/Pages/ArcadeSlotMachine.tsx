@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { slotMachineDepositWithdraw, tonJettonPaymentVerify } from '../Database/edgeFunctions';
 import { logEvent } from '../analytics';
 import { TonConnectButton, useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
@@ -83,6 +83,29 @@ const SlotMachine: React.FC<SlotMachineProps> = ({
   const [withdrawMsg, setWithdrawMsg] = useState('');
   const [tonConnectUI] = useTonConnectUI();
   const wallet = useTonWallet();
+
+  const [tonDeposited, setTonDeposited] = useState(() => {
+    const stored = localStorage.getItem('tonDeposited');
+    return stored ? parseFloat(stored) : 0;
+  });
+  const [tonWithdrawn, setTonWithdrawn] = useState(() => {
+    const stored = localStorage.getItem('tonWithdrawn');
+    return stored ? parseFloat(stored) : 0;
+  });
+  const [slotState, setSlotState] = useState(() => {
+    const stored = localStorage.getItem('slotState');
+    return stored ? JSON.parse(stored) : {};
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tonDeposited', tonDeposited.toString());
+  }, [tonDeposited]);
+  useEffect(() => {
+    localStorage.setItem('tonWithdrawn', tonWithdrawn.toString());
+  }, [tonWithdrawn]);
+  useEffect(() => {
+    localStorage.setItem('slotState', JSON.stringify(slotState));
+  }, [slotState]);
 
   const canSpin = coinBalance >= bet && !spinning;
 

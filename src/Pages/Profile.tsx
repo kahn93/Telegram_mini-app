@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import AvatarModal from '../Components/AvatarModal';
 import { getUserSupabase, updateUserProfileSupabase, User } from '../Database/dbSupabase';
 import tgIcon from '../assets/tg.png';
@@ -54,83 +55,115 @@ const Profile: React.FC<{ userId: string }> = ({ userId }) => {
   if (loading) return <div>Loading profile...</div>;
   if (!profile) return <div>Profile not found.</div>;
 
+  // Quick nav button images
+  const upgradesImg = axsIcon; // Use axs.png for upgrades
+  const trophyImg = trophyIcon;
+  const boostImg = giftIcon; // Use gift.png for boost (or replace with rocket if available)
+
   return (
-    <div style={{ maxWidth: 340, margin: '24px auto', background: '#f8fafc', borderRadius: 12, padding: 16, boxShadow: '0 2px 8px #24308a11' }}>
-      <h2 style={{ color: '#24308a', fontWeight: 800, fontSize: 16, marginBottom: 12 }}>Your Profile</h2>
-      <div style={{ textAlign: 'center', marginBottom: 12 }}>
-        <img src={avatar} alt="avatar" style={{ width: 64, height: 64, borderRadius: '50%', border: '2px solid #ffe259' }} />
-        <button onClick={() => setAvatarModalOpen(true)} style={{ marginTop: 8, background: '#ffe259', borderRadius: 6, padding: '4px 14px', fontWeight: 700 }}>Change Avatar</button>
+    <div style={{ position: 'relative' }}>
+      {/* Quick nav buttons row, fixed at bottom above navbar */}
+      <div style={{
+        position: 'fixed',
+        left: 0,
+        right: 0,
+        bottom: 64, // adjust if your navbar is a different height
+        width: '100vw',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '0 32px',
+        zIndex: 1000,
+        pointerEvents: 'auto',
+        background: 'transparent',
+      }}>
+        <button style={{ background: 'none', border: 'none', padding: 0 }} title="Upgrades">
+          <img src={upgradesImg} alt="Upgrades" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+        </button>
+        <button style={{ background: 'none', border: 'none', padding: 0 }} title="Trophies">
+          <img src={trophyImg} alt="Trophies" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+        </button>
+        <button style={{ background: 'none', border: 'none', padding: 0 }} title="Boosts">
+          <img src={boostImg} alt="Boosts" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+        </button>
       </div>
-      <AvatarModal
-        isOpen={avatarModalOpen}
-        onClose={() => setAvatarModalOpen(false)}
-        onAvatarChange={(newAvatar) => setAvatar(newAvatar)}
-      />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
-          <img src={moneyIcon} alt="Coins" style={{ width: 18, verticalAlign: 'middle' }} />
-          <b>Coins:</b> <span style={{ color: '#b88a00', fontWeight: 700 }}>{profile.coins?.toLocaleString() ?? 0}</span>
+      <div style={{ maxWidth: 340, margin: '24px auto', background: '#f8fafc', borderRadius: 12, padding: 16, boxShadow: '0 2px 8px #24308a11', position: 'relative' }}>
+        <h2 style={{ color: '#24308a', fontWeight: 800, fontSize: 16, marginBottom: 12 }}>Your Profile</h2>
+        <div style={{ textAlign: 'center', marginBottom: 12 }}>
+          <img src={avatar} alt="avatar" style={{ width: 64, height: 64, borderRadius: '50%', border: '2px solid #ffe259' }} />
+          <button onClick={() => setAvatarModalOpen(true)} style={{ marginTop: 8, background: '#ffe259', borderRadius: 6, padding: '4px 14px', fontWeight: 700 }}>Change Avatar</button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-          <b>Country:</b> <span>{profile.country || '(unknown)'}</span>
+        <AvatarModal
+          isOpen={avatarModalOpen}
+          onClose={() => setAvatarModalOpen(false)}
+          onAvatarChange={(newAvatar) => setAvatar(newAvatar)}
+        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+            <img src={moneyIcon} alt="Coins" style={{ width: 18, verticalAlign: 'middle' }} />
+            <b>Coins:</b> <span style={{ color: '#b88a00', fontWeight: 700 }}>{profile.coins?.toLocaleString() ?? 0}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+            <b>Country:</b> <span>{profile.country || '(unknown)'}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#888' }}>
+            <b>User ID:</b> <span style={{ fontFamily: 'monospace' }}>{profile.userid}</span>
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#888' }}>
-          <b>User ID:</b> <span style={{ fontFamily: 'monospace' }}>{profile.userid}</span>
-        </div>
+        {edit ? (
+          <>
+            <div style={{ marginBottom: 8 }}>
+              <label>Nickname: <input value={nickname} onChange={e => setNickname(e.target.value)} style={{ borderRadius: 4, padding: 4 }} /></label>
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <label>Avatar: </label>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                {AVATAR_OPTIONS.map(opt => (
+                  <div key={opt.src} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }} onClick={() => setAvatar(opt.src)}>
+                    <img src={opt.src} alt={opt.label} style={{ width: 38, height: 38, borderRadius: '50%', border: avatar === opt.src ? '2px solid #24308a' : '2px solid #ffe259', marginBottom: 2, background: '#fff' }} />
+                    <span style={{ fontSize: 10 }}>{opt.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <label>Badges: </label>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                {BADGE_OPTIONS.map(b => (
+                  <div key={b.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <input
+                      type="checkbox"
+                      checked={badges.includes(b.label)}
+                      onChange={e => {
+                        if (e.target.checked) setBadges([...badges, b.label]);
+                        else setBadges(badges.filter(badge => badge !== b.label));
+                      }}
+                    />
+                    <img src={b.icon} alt={b.label} style={{ width: 16, verticalAlign: 'middle' }} />
+                    <span style={{ fontSize: 11 }}>{b.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <button onClick={saveProfile} style={{ background: '#ffe259', borderRadius: 6, padding: '4px 16px', fontWeight: 700 }}>Save</button>
+            <button onClick={() => setEdit(false)} style={{ marginLeft: 8, borderRadius: 6, padding: '4px 16px' }}>Cancel</button>
+          </>
+        ) : (
+          <>
+            <div style={{ marginBottom: 8 }}><b>Nickname:</b> {profile.nickname || '(none)'}</div>
+            <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}><b>Badges:</b> {profile.badges && profile.badges.length ? profile.badges.map(badge => {
+              const badgeObj = BADGE_OPTIONS.find(b => b.label === badge);
+              return badgeObj ? (
+                <span key={badge} style={{ display: 'flex', alignItems: 'center', gap: 2, background: '#fffbe6', borderRadius: 4, padding: '2px 6px', fontSize: 11, border: '1px solid #ffe259' }}>
+                  <img src={badgeObj.icon} alt={badgeObj.label} style={{ width: 14, verticalAlign: 'middle' }} />
+                  {badgeObj.label}
+                </span>
+              ) : badge;
+            }) : <span style={{ fontSize: 11 }}>(none)</span>}</div>
+            <button onClick={() => setEdit(true)} style={{ background: '#ffe259', borderRadius: 6, padding: '4px 16px', fontWeight: 700 }}>Edit Profile</button>
+          </>
+        )}
       </div>
-      {edit ? (
-        <>
-          <div style={{ marginBottom: 8 }}>
-            <label>Nickname: <input value={nickname} onChange={e => setNickname(e.target.value)} style={{ borderRadius: 4, padding: 4 }} /></label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>Avatar: </label>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-              {AVATAR_OPTIONS.map(opt => (
-                <div key={opt.src} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }} onClick={() => setAvatar(opt.src)}>
-                  <img src={opt.src} alt={opt.label} style={{ width: 38, height: 38, borderRadius: '50%', border: avatar === opt.src ? '2px solid #24308a' : '2px solid #ffe259', marginBottom: 2, background: '#fff' }} />
-                  <span style={{ fontSize: 10 }}>{opt.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>Badges: </label>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-              {BADGE_OPTIONS.map(b => (
-                <div key={b.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <input
-                    type="checkbox"
-                    checked={badges.includes(b.label)}
-                    onChange={e => {
-                      if (e.target.checked) setBadges([...badges, b.label]);
-                      else setBadges(badges.filter(badge => badge !== b.label));
-                    }}
-                  />
-                  <img src={b.icon} alt={b.label} style={{ width: 16, verticalAlign: 'middle' }} />
-                  <span style={{ fontSize: 11 }}>{b.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <button onClick={saveProfile} style={{ background: '#ffe259', borderRadius: 6, padding: '4px 16px', fontWeight: 700 }}>Save</button>
-          <button onClick={() => setEdit(false)} style={{ marginLeft: 8, borderRadius: 6, padding: '4px 16px' }}>Cancel</button>
-        </>
-      ) : (
-        <>
-          <div style={{ marginBottom: 8 }}><b>Nickname:</b> {profile.nickname || '(none)'}</div>
-          <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}><b>Badges:</b> {profile.badges && profile.badges.length ? profile.badges.map(badge => {
-            const badgeObj = BADGE_OPTIONS.find(b => b.label === badge);
-            return badgeObj ? (
-              <span key={badge} style={{ display: 'flex', alignItems: 'center', gap: 2, background: '#fffbe6', borderRadius: 4, padding: '2px 6px', fontSize: 11, border: '1px solid #ffe259' }}>
-                <img src={badgeObj.icon} alt={badgeObj.label} style={{ width: 14, verticalAlign: 'middle' }} />
-                {badgeObj.label}
-              </span>
-            ) : badge;
-          }) : <span style={{ fontSize: 11 }}>(none)</span>}</div>
-          <button onClick={() => setEdit(true)} style={{ background: '#ffe259', borderRadius: 6, padding: '4px 16px', fontWeight: 700 }}>Edit Profile</button>
-        </>
-      )}
     </div>
   );
 };

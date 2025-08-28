@@ -238,8 +238,10 @@ const PunchOut: React.FC = () => {
       />
       {(gameOver || win) && (
         <div style={{ margin: 8 }}>
-          <button onClick={restart} style={{ marginRight: 12 }}>Restart</button>
-          <button onClick={handleSubmitScore} disabled={submitting}>
+          <button onClick={restart} onTouchStart={restart} style={{ marginRight: 12 }}>
+            Restart
+          </button>
+          <button onClick={handleSubmitScore} onTouchStart={handleSubmitScore} disabled={submitting}>
             {submitting ? 'Submitting...' : 'Submit Score'}
           </button>
         </div>

@@ -258,6 +258,10 @@ const MoonMaidenSlot: React.FC<MoonMaidenSlotProps> = ({ userId: propUserId, onB
             if (!muted && !isMuted()) playSound('button');
             handleSpin();
           }}
+          onTouchStart={() => {
+            if (!muted && !isMuted()) playSound('button');
+            handleSpin();
+          }}
           disabled={!canSpin}
           style={{
             background: canSpin ? 'linear-gradient(135deg,#6c5ce7,#fdcb6e,#fff)' : '#ccc',

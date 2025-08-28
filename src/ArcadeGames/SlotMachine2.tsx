@@ -239,6 +239,10 @@ const SlotMachine2: React.FC<SlotMachine2Props> = ({ userId: propUserId, onBack,
           if (!muted && !isMuted()) playSound('button');
           onBack();
         }}
+        onTouchStart={() => {
+          if (!muted && !isMuted()) playSound('button');
+          onBack();
+        }}
         style={{
           position: 'absolute',
           left: 16,
@@ -298,6 +302,10 @@ const SlotMachine2: React.FC<SlotMachine2Props> = ({ userId: propUserId, onBack,
         </div>
         <button
           onClick={() => {
+            if (!muted && !isMuted()) playSound('button');
+            handleSpin();
+          }}
+          onTouchStart={() => {
             if (!muted && !isMuted()) playSound('button');
             handleSpin();
           }}

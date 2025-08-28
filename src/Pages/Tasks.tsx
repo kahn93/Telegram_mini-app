@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 
 import { logEvent } from '../analytics';
@@ -29,20 +28,25 @@ const Tasks: React.FC<TasksProps> = ({ tasks }) => {
 	const [tonConnectUI] = useTonConnectUI();
 	const wallet = useTonWallet();
 	// Streak and weekly quest state
-	const [streak, setStreak] = useState(0);
-	const [lastCheckIn, setLastCheckIn] = useState<number | null>(null);
-	const [weeklyProgress, setWeeklyProgress] = useState(0);
+	const [streak, setStreak] = useState(() => parseInt(localStorage.getItem('dailyStreak') || '0', 10));
+	const [lastCheckIn, setLastCheckIn] = useState<number | null>(() => {
+		const val = localStorage.getItem('lastCheckIn');
+		return val ? parseInt(val, 10) : null;
+	});
+	const [weeklyProgress, setWeeklyProgress] = useState(() => parseInt(localStorage.getItem('weeklyProgress') || '0', 10));
 	const WEEKLY_GOAL = 7;
 
-	// Load streak and weekly progress from localStorage
 	useEffect(() => {
-		const streakVal = parseInt(localStorage.getItem('dailyStreak') || '0', 10);
-		const last = parseInt(localStorage.getItem('lastCheckIn') || '0', 10);
-		const weekly = parseInt(localStorage.getItem('weeklyProgress') || '0', 10);
-		setStreak(streakVal);
-		setLastCheckIn(last || null);
-		setWeeklyProgress(weekly);
-	}, []);
+		localStorage.setItem('dailyStreak', streak.toString());
+	}, [streak]);
+	useEffect(() => {
+		if (lastCheckIn !== null) {
+			localStorage.setItem('lastCheckIn', lastCheckIn.toString());
+		}
+	}, [lastCheckIn]);
+	useEffect(() => {
+		localStorage.setItem('weeklyProgress', weeklyProgress.toString());
+	}, [weeklyProgress]);
 
 
 	// TON wallet payment for daily check-in

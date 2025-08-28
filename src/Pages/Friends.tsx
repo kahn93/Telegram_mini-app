@@ -1,231 +1,311 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
+import styles from './Friends.module.scss';
 import stickerGift from '../assets/gift.png';
 import stickerCrown from '../assets/crown.png';
 import stickerTg from '../assets/tg.png';
+import { supabase } from '../supabaseClient';
 
-export type Friend = {
-	id: string;
-	name: string;
-};
-
-type FriendsProps = {
-	friends?: Friend[];
-};
-type ChatMessage = { sender: string; text: string; timestamp: number };
+type Friend = { id: string; name: string };
 type GuildMember = { id: string; name: string };
 type Guild = { name: string; members: GuildMember[] };
+type ChatMessage = { sender: string; text: string; timestamp: number };
+type ChatMode = 'private' | 'guild' | 'group';
 
-const Friends: React.FC<FriendsProps> = ({ friends: initialFriends = [] }) => {
-	const [friends, setFriends] = useState<Friend[]>(() => {
-		try {
-			return JSON.parse(localStorage.getItem('friends') || '[]');
-		} catch {
-			return initialFriends;
-		}
-	});
-	const [addId, setAddId] = useState('');
-	const [addName, setAddName] = useState('');
-	const [addMsg, setAddMsg] = useState('');
-	const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
-	const [chatInput, setChatInput] = useState('');
-	const [chatHistory, setChatHistory] = useState<{ [friendId: string]: ChatMessage[] }>(() => {
-		try {
-			return JSON.parse(localStorage.getItem('chatHistory') || '{}');
-		} catch {
-			return {};
-		}
-	});
-	const [guild, setGuild] = useState<Guild | null>(() => {
-		try {
-			return JSON.parse(localStorage.getItem('guild') || 'null');
-		} catch {
-			return null;
-		}
-	});
-	const [guildNameInput, setGuildNameInput] = useState('');
 
-	useEffect(() => {
-		localStorage.setItem('friends', JSON.stringify(friends));
-	}, [friends]);
+interface FriendsProps {
+  setCurrentView?: (view: string) => void;
+}
 
-	useEffect(() => {
-		if (guild) {
-			localStorage.setItem('guild', JSON.stringify(guild));
-		}
-	}, [guild]);
+const Friends: React.FC<FriendsProps> = ({ setCurrentView }) => {
+  const [friends, setFriends] = useState<Friend[]>(() => {
+    const stored = localStorage.getItem('friends');
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [addId, setAddId] = useState('');
+  const [addName, setAddName] = useState('');
+  const [addMsg, setAddMsg] = useState('');
+  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(() => {
+    const stored = localStorage.getItem('selectedFriend');
+    return stored ? JSON.parse(stored) : null;
+  });
+  const [chatInput, setChatInput] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [guild, setGuild] = useState<Guild | null>(() => {
+    const storedGuild = localStorage.getItem('guild');
+    return storedGuild ? JSON.parse(storedGuild) : null;
+  });
+  const [guildNameInput, setGuildNameInput] = useState('');
+  const [chatMode, setChatMode] = useState<ChatMode>('private');
+  const [groupId, setGroupId] = useState('');
+  const userId = localStorage.getItem('userId') || 'me';
+  const userName = localStorage.getItem('userName') || 'Me';
 
-	useEffect(() => {
-		localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-	}, [chatHistory]);
+  useEffect(() => {
+    // Load friends from localStorage
+    const stored = localStorage.getItem('friends');
+    if (stored) setFriends(JSON.parse(stored));
+    // Load guild from localStorage
+    const storedGuild = localStorage.getItem('guild');
+    if (storedGuild) setGuild(JSON.parse(storedGuild));
+  }, []);
 
-	const handleAddFriend = () => {
-		if (!addId || !addName) {
-			setAddMsg('Enter both user ID and name.');
-			return;
-		}
-		if (friends.some(f => f.id === addId)) {
-			setAddMsg('Already added.');
-			return;
-		}
-		setFriends(prev => [...prev, { id: addId, name: addName }]);
-		setAddId('');
-		setAddName('');
-		setAddMsg('Friend added!');
-		setTimeout(() => setAddMsg(''), 1200);
-	};
+  // Fetch chat messages from Supabase for selected friend (private chat only for now)
+  useEffect(() => {
+    if (chatMode !== 'private' || !selectedFriend) {
+      setMessages([]);
+      return;
+    }
+    let isMounted = true;
+    const fetchMessages = async () => {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .or(`and(sender_id.eq.${userId},recipient_id.eq.${selectedFriend.id}),and(sender_id.eq.${selectedFriend.id},recipient_id.eq.${userId})`)
+        .order('timestamp', { ascending: true });
+      if (!error && isMounted) {
+        setMessages(
+          (data || []).map((msg: any) => ({
+            sender: String(msg.sender_id),
+            text: msg.text,
+            timestamp: new Date(msg.timestamp).getTime(),
+          }))
+        );
+      }
+    };
+    fetchMessages();
+    return () => {
+      isMounted = false;
+    };
+  }, [chatMode, selectedFriend, userId]);
 
-	const handleSelectFriend = (friend: Friend) => {
-		setSelectedFriend(friend);
-	};
+  const handleAddFriend = () => {
+    if (!addId.trim() || !addName.trim()) {
+      setAddMsg('Enter both ID and Name');
+      return;
+    }
+    if (friends.some(f => f.id === addId)) {
+      setAddMsg('Already friends');
+      return;
+    }
+    const newFriend = { id: addId, name: addName };
+    const updated = [...friends, newFriend];
+    setFriends(updated);
+    localStorage.setItem('friends', JSON.stringify(updated));
+    setAddId('');
+    setAddName('');
+    setAddMsg('Friend added!');
+  };
 
-	const handleSendMessage = () => {
-		if (!selectedFriend || !chatInput.trim()) return;
-		const userId = localStorage.getItem('userId') || 'You';
-		const msg: ChatMessage = {
-			sender: userId,
-			text: chatInput,
-			timestamp: Date.now(),
-		};
-		setChatHistory(prev => ({
-			...prev,
-			[selectedFriend.id]: [...(prev[selectedFriend.id] || []), msg],
-		}));
-		setChatInput('');
-	};
+  const handleSelectFriend = (friend: Friend) => {
+    setSelectedFriend(friend);
+    setChatMode('private');
+  };
 
-	const handleCreateGuild = () => {
-		if (!guildNameInput.trim()) return;
-		const userId = localStorage.getItem('userId') || 'You';
-		const userName = localStorage.getItem('userName') || 'You';
-		setGuild({ name: guildNameInput.trim(), members: [{ id: userId, name: userName }] });
-		setGuildNameInput('');
-	};
+  const handleSendMessage = async () => {
+    if (chatMode !== 'private' || !selectedFriend || !chatInput.trim()) return;
+    const { error } = await supabase.from('messages').insert([
+      {
+        sender_id: userId,
+        recipient_id: selectedFriend.id,
+        text: chatInput,
+      },
+    ]);
+    if (!error) setChatInput('');
+  };
 
-	const handleJoinGuild = () => {
-		if (!guildNameInput.trim()) return;
-		const userId = localStorage.getItem('userId') || 'You';
-		const userName = localStorage.getItem('userName') || 'You';
-		let storedGuild: Guild | null = null;
-		try {
-			storedGuild = JSON.parse(localStorage.getItem('guild') || 'null');
-		} catch {
-			storedGuild = null;
-		}
-		if (storedGuild && storedGuild.name === guildNameInput.trim()) {
-			if (!storedGuild.members.some((m: GuildMember) => m.id === userId)) {
-				storedGuild.members.push({ id: userId, name: userName });
-			}
-			setGuild({ ...storedGuild });
-		} else {
-			setGuild({ name: guildNameInput.trim(), members: [{ id: userId, name: userName }] });
-		}
-		setGuildNameInput('');
-	};
+  const handleCreateGuild = () => {
+    if (!guildNameInput.trim()) return;
+    const newGuild: Guild = {
+      name: guildNameInput.trim(),
+      members: [{ id: userId, name: userName }],
+    };
+    setGuild(newGuild);
+    localStorage.setItem('guild', JSON.stringify(newGuild));
+    setGuildNameInput('');
+  };
 
-	return (
-		<div style={{ maxWidth: 340, margin: '20px auto', padding: 12, background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)', borderRadius: 12, boxShadow: '0 2px 12px #24308a11' }}>
-			{/* Guild/Team Section */}
-			<div style={{ margin: '18px 0', padding: 10, background: '#f0f7ff', borderRadius: 8, boxShadow: '0 1px 4px #24308a10' }}>
-				<div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>Guild / Team</div>
-				{guild ? (
-					<div>
-						<div style={{ fontSize: 11, marginBottom: 4 }}><b>Guild:</b> {guild.name}</div>
-						<div style={{ fontSize: 10, marginBottom: 4 }}><b>Members:</b></div>
-						<ul style={{ fontSize: 10, margin: 0, padding: 0, listStyle: 'none' }}>
-							{guild.members.map((m, i) => (
-								<li key={m.id + i} style={{ marginBottom: 2 }}>{m.name} <span style={{ color: '#888', fontSize: 9 }}>({m.id})</span></li>
-							))}
-						</ul>
-					</div>
-				) : (
-					<div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-						<input
-							value={guildNameInput}
-							onChange={e => setGuildNameInput(e.target.value)}
-							placeholder="Guild name"
-							style={{ fontSize: 10, borderRadius: 4, padding: 2, width: 90 }}
-						/>
-						<button onClick={handleCreateGuild} style={{ fontSize: 10, borderRadius: 4, padding: '2px 8px', background: '#ffe259', fontWeight: 700 }}>Create</button>
-						<button onClick={handleJoinGuild} style={{ fontSize: 10, borderRadius: 4, padding: '2px 8px', background: '#b8e259', fontWeight: 700 }}>Join</button>
-					</div>
-				)}
-			</div>
-			<div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Your Friends</div>
-			<div style={{ marginBottom: 10 }}>
-				<input
-					value={addId}
-					onChange={e => setAddId(e.target.value)}
-					placeholder="User ID"
-					style={{ fontSize: 10, borderRadius: 4, padding: 2, marginRight: 4, width: 70 }}
-				/>
-				<input
-					value={addName}
-					onChange={e => setAddName(e.target.value)}
-					placeholder="Name"
-					style={{ fontSize: 10, borderRadius: 4, padding: 2, marginRight: 4, width: 70 }}
-				/>
-				<button onClick={handleAddFriend} style={{ fontSize: 10, borderRadius: 4, padding: '2px 8px', background: '#ffe259', fontWeight: 700 }}>Add Friend</button>
-				{addMsg && <span style={{ fontSize: 10, color: '#1bbf4c', marginLeft: 8 }}>{addMsg}</span>}
-			</div>
-			<ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-				{friends.length === 0 && <li style={{ fontSize: 10, color: '#888' }}>No friends yet. Invite some!</li>}
-				{friends.map((friend) => (
-					<li key={friend.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, background: selectedFriend?.id === friend.id ? '#e6f7ff' : '#fff', borderRadius: 6, padding: '4px 8px', boxShadow: '0 1px 2px #24308a08', fontSize: 10, cursor: 'pointer' }}>
-						<span style={{ flex: 1 }} onClick={() => handleSelectFriend(friend)}>
-							{friend.name} <span style={{ color: '#888', fontSize: 9 }}>({friend.id})</span>
-						</span>
-					</li>
-				))}
-			</ul>
-			{/* Chat UI */}
-			{selectedFriend && (
-				<div style={{ marginTop: 16, background: '#f7faff', borderRadius: 8, padding: 10, boxShadow: '0 1px 4px #24308a10' }}>
-					<div style={{ fontWeight: 700, fontSize: 12, marginBottom: 6 }}>
-						Chat with {selectedFriend.name}
-						<button style={{ float: 'right', fontSize: 10, border: 'none', background: 'none', color: '#888', cursor: 'pointer' }} onClick={() => setSelectedFriend(null)}>×</button>
-					</div>
-					<div style={{ maxHeight: 120, overflowY: 'auto', background: '#fff', borderRadius: 6, padding: 6, marginBottom: 8, fontSize: 10 }}>
-						{(chatHistory[selectedFriend.id] || []).length === 0 && <div style={{ color: '#aaa' }}>No messages yet.</div>}
-						{(chatHistory[selectedFriend.id] || []).map((msg, idx) => (
-							<div key={idx} style={{ marginBottom: 4, textAlign: msg.sender === (localStorage.getItem('userId') || 'You') ? 'right' : 'left' }}>
-								<span style={{ background: msg.sender === (localStorage.getItem('userId') || 'You') ? '#e6f7ff' : '#ffe259', borderRadius: 4, padding: '2px 6px', display: 'inline-block' }}>
-									<b>{msg.sender === (localStorage.getItem('userId') || 'You') ? 'You' : selectedFriend.name}:</b> {msg.text.startsWith(':sticker:') ? (
-										<img src={msg.text.replace(':sticker:', '')} alt="sticker" style={{ height: 24, verticalAlign: 'middle' }} />
-									) : msg.text}
-								</span>
-								<span style={{ color: '#bbb', fontSize: 8, marginLeft: 4 }}>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-							</div>
-						))}
-					</div>
-					{/* Emoji and Sticker Picker */}
-					<div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
-						{/* Emoji Picker */}
-						<div style={{ display: 'flex', gap: 2 }}>
-							{["😀","😂","😍","😎","🥳","😇","😜","🤩","😭","🔥","💎","🎉"].map(emoji => (
-								<button key={emoji} style={{ fontSize: 14, border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => setChatInput(chatInput + emoji)}>{emoji}</button>
-							))}
-						</div>
-						{/* Sticker Picker */}
-						<div style={{ display: 'flex', gap: 2, marginLeft: 8 }}>
-							<button style={{ border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => setChatInput(':sticker:' + stickerGift)}><img src={stickerGift} alt="gift" style={{ height: 22 }} /></button>
-							<button style={{ border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => setChatInput(':sticker:' + stickerCrown)}><img src={stickerCrown} alt="crown" style={{ height: 22 }} /></button>
-							<button style={{ border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => setChatInput(':sticker:' + stickerTg)}><img src={stickerTg} alt="tg" style={{ height: 22 }} /></button>
-						</div>
-					</div>
-					<div style={{ display: 'flex', gap: 4 }}>
-						<input
-							value={chatInput}
-							onChange={e => setChatInput(e.target.value)}
-							onKeyDown={e => { if (e.key === 'Enter') handleSendMessage(); }}
-							placeholder="Type a message..."
-							style={{ flex: 1, fontSize: 10, borderRadius: 4, padding: 4 }}
-						/>
-						<button onClick={handleSendMessage} style={{ fontSize: 10, borderRadius: 4, padding: '2px 10px', background: '#ffe259', fontWeight: 700 }}>Send</button>
-					</div>
-				</div>
-			)}
-		</div>
-	);
+  const handleJoinGuild = () => {
+    let storedGuild: Guild | null = null;
+    try {
+      storedGuild = JSON.parse(localStorage.getItem('guild') || 'null');
+    } catch {
+      storedGuild = null;
+    }
+    if (storedGuild && storedGuild.name === guildNameInput.trim()) {
+      if (!storedGuild.members.some((m: GuildMember) => m.id === userId)) {
+        storedGuild.members.push({ id: userId, name: userName });
+      }
+      setGuild({ ...storedGuild });
+      localStorage.setItem('guild', JSON.stringify(storedGuild));
+    } else {
+      setGuild({ name: guildNameInput.trim(), members: [{ id: userId, name: userName }] });
+      localStorage.setItem('guild', JSON.stringify({ name: guildNameInput.trim(), members: [{ id: userId, name: userName }] }));
+    }
+    setGuildNameInput('');
+  };
+
+  useEffect(() => {
+    localStorage.setItem('friends', JSON.stringify(friends));
+  }, [friends]);
+
+  useEffect(() => {
+    if (guild) {
+      localStorage.setItem('guild', JSON.stringify(guild));
+    }
+  }, [guild]);
+
+  useEffect(() => {
+    if (selectedFriend) {
+      localStorage.setItem('selectedFriend', JSON.stringify(selectedFriend));
+    } else {
+      localStorage.removeItem('selectedFriend');
+    }
+  }, [selectedFriend]);
+
+  return (
+    <>
+      <div className={styles.friendsContainer}>
+        {/* Guild/Team Section */}
+        <div className={styles.guildSection}>
+          <div className={styles.guildTitle}>Guild / Team</div>
+          {guild ? (
+            <div>
+              <div className={styles.guildName}><b>Guild:</b> {guild.name}</div>
+              <div className={styles.guildMembersTitle}><b>Members:</b></div>
+              <ul className={styles.guildMembersList}>
+                {guild.members.map((m, i) => (
+                  <li key={m.id + i} className={styles.guildMemberItem}>{m.name} <span className={styles.guildMemberId}>({m.id})</span></li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <div className={styles.guildInputRow}>
+              <input
+                value={guildNameInput}
+                onChange={e => setGuildNameInput(e.target.value)}
+                placeholder="Guild name"
+                className={styles.guildInput}
+              />
+              <button onClick={handleCreateGuild} className={styles.guildCreateBtn}>Create</button>
+              <button onClick={handleJoinGuild} className={styles.guildJoinBtn}>Join</button>
+            </div>
+          )}
+        </div>
+        <div className={styles.friendsTitle}>Your Friends</div>
+        <div className={styles.addFriendRow}>
+          <input
+            value={addId}
+            onChange={e => setAddId(e.target.value)}
+            placeholder="User ID"
+            className={styles.addFriendInput}
+          />
+          <input
+            value={addName}
+            onChange={e => setAddName(e.target.value)}
+            placeholder="Name"
+            className={styles.addFriendInput}
+          />
+          <button onClick={handleAddFriend} className={styles.addFriendBtn}>Add Friend</button>
+          {addMsg && <span className={styles.addFriendMsg}>{addMsg}</span>}
+        </div>
+        <ul className={styles.friendsList}>
+          {friends.length === 0 && <li className={styles.noFriends}>No friends yet. Invite some!</li>}
+          {friends.map((friend) => (
+            <li key={friend.id} className={selectedFriend?.id === friend.id ? styles.friendItemSelected : styles.friendItem}>
+              <span className={styles.friendName} onClick={() => handleSelectFriend(friend)}>
+                {friend.name} <span className={styles.friendId}>({friend.id})</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        {/* Chat Mode Selector */}
+        <div style={{ display: 'flex', gap: 8, margin: '12px 0' }}>
+          <button className={styles.toggleBtn} onClick={() => { setChatMode('private'); setSelectedFriend(null); }}>Private</button>
+          <button className={styles.toggleBtn} onClick={() => setChatMode('guild')}>Guild</button>
+          <button className={styles.toggleBtn} onClick={() => setChatMode('group')}>Group</button>
+          {chatMode === 'group' && (
+            <input
+              value={groupId}
+              onChange={e => setGroupId(e.target.value)}
+              placeholder="Group ID"
+              style={{ fontSize: 10, borderRadius: 4, padding: 2, width: 80 }}
+            />
+          )}
+        </div>
+        {/* Chat UI (private chat only for now) */}
+        {selectedFriend && chatMode === 'private' && (
+          <div className={styles.chatContainer}>
+            <div className={styles.chatHeader}>
+              Chat with {selectedFriend.name}
+              <button className={styles.chatCloseBtn} onClick={() => setSelectedFriend(null)}>×</button>
+            </div>
+            <div className={styles.chatHistory}>
+              {messages.length === 0 && <div className={styles.noMessages}>No messages yet.</div>}
+              {messages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={
+                    msg.sender === userId
+                      ? `${styles.chatMessage} ${styles.alignRight}`
+                      : `${styles.chatMessage} ${styles.alignLeft}`
+                  }
+                >
+                  <span className={msg.sender === userId ? styles.chatBubbleMe : styles.chatBubbleOther}>
+                    <b>{msg.sender === userId ? 'You' : selectedFriend.name}:</b>{' '}
+                    {msg.text.startsWith(':sticker:') ? (
+                      <img src={msg.text.replace(':sticker:', '')} alt="sticker" className={styles.stickerImg} />
+                    ) : (
+                      msg.text
+                    )}
+                  </span>
+                  <span className={styles.chatTimestamp}>
+                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {/* Emoji and Sticker Picker */}
+            <div className={styles.emojiRow}>
+              {/* Emoji Picker */}
+              <div className={styles.emojiPicker}>
+                {[
+                  "😀","😂","😍","😎","🥳","😇","😜","🤩","😭","🔥","💎","🎉"
+                ].map(emoji => (
+                  <button key={emoji} className={styles.emojiBtn} onClick={() => setChatInput(chatInput + emoji)}>{emoji}</button>
+                ))}
+              </div>
+              {/* Sticker Picker */}
+              <div className={styles.stickerPicker}>
+                <button className={styles.stickerBtn} onClick={() => setChatInput(':sticker:' + stickerGift)}><img src={stickerGift} alt="gift" className={styles.stickerIcon} /></button>
+                <button className={styles.stickerBtn} onClick={() => setChatInput(':sticker:' + stickerCrown)}><img src={stickerCrown} alt="crown" className={styles.stickerIcon} /></button>
+                <button className={styles.stickerBtn} onClick={() => setChatInput(':sticker:' + stickerTg)}><img src={stickerTg} alt="tg" className={styles.stickerIcon} /></button>
+              </div>
+            </div>
+            <div className={styles.chatInputRow}>
+              <input
+                value={chatInput}
+                onChange={e => setChatInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleSendMessage(); }}
+                placeholder="Type a message..."
+                className={styles.chatInput}
+              />
+              <button onClick={handleSendMessage} className={styles.sendBtn}>Send</button>
+            </div>
+          </div>
+        )}
+      </div>
+      {/* Fixed Toggle Buttons for Chat and Events at bottom of screen */}
+      <div className={styles.toggleRowFixed}>
+        <button className={styles.toggleBtn} onClick={() => setCurrentView && setCurrentView('events')}>
+          Events
+        </button>
+        <button className={styles.toggleBtn} onClick={() => setCurrentView && setCurrentView('chat')}>
+          Chat
+        </button>
+      </div>
+    </>
+  );
 };
 
 export default Friends;

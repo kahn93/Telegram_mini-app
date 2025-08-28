@@ -1,0 +1,23 @@
+.socialContainer {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.socialTitle {
+  text-align: center;
+  color: #24308a;
+  margin-bottom: 16px;
+}
+.socialTabs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.activeTab {
+  font-weight: 700;
+  background: #ffe259;
+  border-radius: 6px;
+  padding: 4px 16px;
+  border: 1px solid #eee;
+}
