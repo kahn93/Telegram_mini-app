@@ -232,7 +232,62 @@ export const PacmanReplica: React.FC<PacmanReplicaProps> = ({ userId }) => {
     }
   }, [gameOver]);
 
-  // --- UI rendering ---
+  // --- Canvas rendering ---
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  // Sprite sizes (px)
+  const TILE = 24;
+  const PACMAN_SIZE = 24;
+  const GHOST_SIZE = 24;
+
+  // Sprite sheet coordinates (example, adjust as needed for your sheet)
+  const SPRITES = {
+    wall: { x: 0, y: 0, w: 24, h: 24 },
+    dot: { x: 24, y: 0, w: 24, h: 24 },
+    pellet: { x: 48, y: 0, w: 24, h: 24 },
+    pacman: { x: 0, y: 24, w: 24, h: 24 },
+    blinky: { x: 24, y: 24, w: 24, h: 24 },
+    pinky: { x: 48, y: 24, w: 24, h: 24 },
+    inky: { x: 72, y: 24, w: 24, h: 24 },
+    clyde: { x: 96, y: 24, w: 24, h: 24 },
+  };
+
+  // Cache the loaded image for smooth rendering
+  const [spriteImg, setSpriteImg] = useState<HTMLImageElement | null>(null);
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = spritesheet;
+    img.onload = () => setSpriteImg(img);
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !spriteImg) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    // Draw background
+    ctx.fillStyle = '#222';
+    ctx.fillRect(0, 0, COLS * TILE, ROWS * TILE);
+    // Draw maze
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const cell = maze[y][x];
+        if (cell === 1) ctx.drawImage(spriteImg, SPRITES.wall.x, SPRITES.wall.y, SPRITES.wall.w, SPRITES.wall.h, x * TILE, y * TILE, TILE, TILE);
+        if (cell === 2) ctx.drawImage(spriteImg, SPRITES.dot.x, SPRITES.dot.y, SPRITES.dot.w, SPRITES.dot.h, x * TILE + 8, y * TILE + 8, 8, 8);
+        if (cell === 3) ctx.drawImage(spriteImg, SPRITES.pellet.x, SPRITES.pellet.y, SPRITES.pellet.w, SPRITES.pellet.h, x * TILE + 4, y * TILE + 4, 16, 16);
+      }
+    }
+    // Draw ghosts
+    ghosts.forEach(g => {
+      let sprite = SPRITES.blinky;
+      if (g.name === 'Pinky') sprite = SPRITES.pinky;
+      if (g.name === 'Inky') sprite = SPRITES.inky;
+      if (g.name === 'Clyde') sprite = SPRITES.clyde;
+      ctx.drawImage(spriteImg, sprite.x, sprite.y, sprite.w, sprite.h, g.x * TILE, g.y * TILE, GHOST_SIZE, GHOST_SIZE);
+    });
+    // Draw Pac-Man
+    ctx.drawImage(spriteImg, SPRITES.pacman.x, SPRITES.pacman.y, SPRITES.pacman.w, SPRITES.pacman.h, pacman.x * TILE, pacman.y * TILE, PACMAN_SIZE, PACMAN_SIZE);
+  }, [maze, ghosts, pacman, spriteImg]);
+
   return (
     <div
       ref={containerRef}
@@ -264,10 +319,6 @@ export const PacmanReplica: React.FC<PacmanReplicaProps> = ({ userId }) => {
         }
         style={{
           position: 'relative',
-          display: 'grid',
-          gridTemplateRows: `repeat(${ROWS}, 24px)`,
-          gridTemplateColumns: `repeat(${COLS}, 24px)`,
-          gap: 0,
           background: '#222',
           border: '2px solid #ffe600',
           borderRadius: 10,
@@ -276,28 +327,12 @@ export const PacmanReplica: React.FC<PacmanReplicaProps> = ({ userId }) => {
         }}
         aria-live="polite"
       >
-        {maze.flatMap((row, y) =>
-          row.map((cell, x) => {
-            let content = '';
-            if (pacman.x === x && pacman.y === y) content = '😋';
-            else if (ghosts.some(g => g.x === x && g.y === y)) content = '👻';
-            else if (cell === 2) content = '•';
-            else if (cell === 3) content = '◉';
-            return (
-              <div
-                key={x + '-' + y}
-                style={{
-                  width: 24, height: 24,
-                  background: cell === 1 ? '#2a2a7a' : 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: cell === 3 ? 18 : 16,
-                  color: cell === 3 ? '#ffe600' : '#fff',
-                  borderRadius: 4,
-                }}
-              >{content}</div>
-            );
-          })
-        )}
+        <canvas
+          ref={canvasRef}
+          width={COLS * TILE}
+          height={ROWS * TILE}
+          style={{ display: 'block', width: COLS * TILE, height: ROWS * TILE, background: 'transparent' }}
+        />
         <div className="arcade-scanlines" />
         {paused && (
           <div style={{
@@ -318,7 +353,6 @@ export const PacmanReplica: React.FC<PacmanReplicaProps> = ({ userId }) => {
       <div style={{ color: '#fff', fontWeight: 700, fontSize: 18, margin: '10px 0 2px', textAlign: 'center' }}>
         Score: {score} &nbsp; | &nbsp; High Score: {highScore} &nbsp; | &nbsp; <span style={{ color: '#ffe600' }}>FPS: {fps}</span>
       </div>
-      {/* Touch controls for mobile */}
       {/* Touch controls for mobile, with swipe support */}
       <div
         style={{ display: 'flex', justifyContent: 'center', margin: 8, gap: 8 }}
@@ -369,8 +403,8 @@ export const PacmanReplica: React.FC<PacmanReplicaProps> = ({ userId }) => {
           loop={key === 'bgm'}
         />
       ))}
-      </div>
-    );
+    </div>
+  );
 };
 
 
