@@ -483,7 +483,7 @@ function App() {
     case 'leaderboard':
       return <Leaderboard />;
     case 'Shop':
-      return <Shop onPurchase={handleShopPurchase} purchased={purchased} />;
+      return <Shop onPurchase={handleShopPurchase} />;
     case 'Trophies': {
       const shopPurchasesCount = Object.keys(purchased).length;
       return (

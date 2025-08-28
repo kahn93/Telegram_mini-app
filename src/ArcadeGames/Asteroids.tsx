@@ -43,10 +43,35 @@ const Asteroids: React.FC<{ userid?: string; muted?: boolean }> = ({ userid: pro
     }
   }, [propUserId]);
 
-  const [ship, setShip] = useState({ x: WIDTH / 2, y: HEIGHT / 2, angle: 0 });
-  const [asteroids, setAsteroids] = useState(Array.from({ length: ASTEROID_COUNT }, randomAsteroid));
-  const [score, setScore] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
+  const [ship, setShip] = useState(() => {
+    const stored = localStorage.getItem('asteroids_ship');
+    return stored ? JSON.parse(stored) : { x: WIDTH / 2, y: HEIGHT / 2, angle: 0 };
+  });
+  const [asteroids, setAsteroids] = useState(() => {
+    const stored = localStorage.getItem('asteroids_asteroids');
+    return stored ? JSON.parse(stored) : Array.from({ length: ASTEROID_COUNT }, randomAsteroid);
+  });
+  const [score, setScore] = useState(() => {
+    const stored = localStorage.getItem('asteroids_score');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  const [gameOver, setGameOver] = useState(() => {
+    const stored = localStorage.getItem('asteroids_gameOver');
+    return stored ? JSON.parse(stored) : false;
+  });
+  // Auto-save logic
+  useEffect(() => {
+    localStorage.setItem('asteroids_ship', JSON.stringify(ship));
+  }, [ship]);
+  useEffect(() => {
+    localStorage.setItem('asteroids_asteroids', JSON.stringify(asteroids));
+  }, [asteroids]);
+  useEffect(() => {
+    localStorage.setItem('asteroids_score', score.toString());
+  }, [score]);
+  useEffect(() => {
+    localStorage.setItem('asteroids_gameOver', JSON.stringify(gameOver));
+  }, [gameOver]);
   const [showGameOverEffect, setShowGameOverEffect] = useState(false);
   const thrustRef = useRef(false);
 
@@ -69,7 +94,7 @@ const Asteroids: React.FC<{ userid?: string; muted?: boolean }> = ({ userid: pro
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (gameOver) return;
-      setShip((s) => {
+  setShip((s: { x: number; y: number; angle: number }) => {
         let { x, y, angle } = s;
         if (e.key === 'ArrowLeft') angle -= 0.2;
         if (e.key === 'ArrowRight') angle += 0.2;
@@ -93,15 +118,15 @@ const Asteroids: React.FC<{ userid?: string; muted?: boolean }> = ({ userid: pro
   useEffect(() => {
     if (gameOver) return;
     const interval = setInterval(() => {
-      setAsteroids((as) =>
-        as.map((a) => ({
+      setAsteroids((as: any[]) =>
+        as.map((a: any) => ({
           ...a,
           x: (a.x + a.dx + WIDTH) % WIDTH,
           y: (a.y + a.dy + HEIGHT) % HEIGHT,
         }))
       );
       // Collision
-      asteroids.forEach((a) => {
+  asteroids.forEach((a: any) => {
         const dist = Math.hypot(a.x - ship.x, a.y - ship.y);
         if (dist < a.r + 5) {
           setGameOver(true);
@@ -155,7 +180,7 @@ const Asteroids: React.FC<{ userid?: string; muted?: boolean }> = ({ userid: pro
       <h4 style={{ color: '#ffe600', textShadow: '0 0 8px #fff', marginBottom: 8, zIndex: 2, position: 'relative' }}>Asteroids</h4>
       <svg width={WIDTH} height={HEIGHT} style={{ background: 'transparent', zIndex: 2, position: 'relative', borderRadius: 10, boxShadow: '0 0 12px #ffe600 inset' }}>
         <circle cx={ship.x} cy={ship.y} r={7} fill="yellow" stroke="#fff" strokeWidth={2} />
-        {asteroids.map((a, i) => (
+  {asteroids.map((a: any, i: number) => (
           <circle key={i} cx={a.x} cy={a.y} r={a.r} fill="#888" stroke="#fff" strokeWidth={1.5} />
         ))}
       </svg>
@@ -176,7 +201,7 @@ const Asteroids: React.FC<{ userid?: string; muted?: boolean }> = ({ userid: pro
           💥 GAME OVER
         </div>
       )}
-      <div style={{ color: '#ffe600', fontWeight: 600, fontSize: 14, marginTop: 8, textShadow: '0 0 6px #fff' }}>User: {userId || 'Not connected'}</div>
+  {/* Removed unused userId display for consistency */}
       <style>{`
         @keyframes popError {
           0% { transform: scale(1); }

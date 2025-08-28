@@ -38,19 +38,80 @@ interface Enemy {
 
 const SpaceInvaders: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [score, setScore] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
-  const [win, setWin] = useState(false);
-  const [running, setRunning] = useState(true);
+  const [score, setScore] = useState(() => {
+    const stored = localStorage.getItem('si_score');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  const [gameOver, setGameOver] = useState(() => {
+    const stored = localStorage.getItem('si_gameOver');
+    return stored ? JSON.parse(stored) : false;
+  });
+  const [win, setWin] = useState(() => {
+    const stored = localStorage.getItem('si_win');
+    return stored ? JSON.parse(stored) : false;
+  });
+  const [running, setRunning] = useState(() => {
+    const stored = localStorage.getItem('si_running');
+    return stored ? JSON.parse(stored) : true;
+  });
   const [showInstructions, setShowInstructions] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [playerX, setPlayerX] = useState(GAME_WIDTH / 2 - PLAYER_WIDTH / 2);
-  const [playerLives, setPlayerLives] = useState(3);
-  const [bullets, setBullets] = useState<Bullet[]>([]);
-  const [enemies, setEnemies] = useState<Enemy[]>([]);
-  const [enemyDir, setEnemyDir] = useState(1);
-  const [enemyStep, setEnemyStep] = useState(0);
+  const [playerX, setPlayerX] = useState(() => {
+    const stored = localStorage.getItem('si_playerX');
+    return stored ? parseFloat(stored) : GAME_WIDTH / 2 - PLAYER_WIDTH / 2;
+  });
+  const [playerLives, setPlayerLives] = useState(() => {
+    const stored = localStorage.getItem('si_playerLives');
+    return stored ? parseInt(stored, 10) : 3;
+  });
+  const [bullets, setBullets] = useState<Bullet[]>(() => {
+    const stored = localStorage.getItem('si_bullets');
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [enemies, setEnemies] = useState<Enemy[]>(() => {
+    const stored = localStorage.getItem('si_enemies');
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [enemyDir, setEnemyDir] = useState(() => {
+    const stored = localStorage.getItem('si_enemyDir');
+    return stored ? parseInt(stored, 10) : 1;
+  });
+  const [enemyStep, setEnemyStep] = useState(() => {
+    const stored = localStorage.getItem('si_enemyStep');
+    return stored ? parseInt(stored, 10) : 0;
+  });
   const keys = useRef<{ [k: string]: boolean }>({});
+  // Auto-save logic
+  useEffect(() => {
+    localStorage.setItem('si_playerX', playerX.toString());
+  }, [playerX]);
+  useEffect(() => {
+    localStorage.setItem('si_playerLives', playerLives.toString());
+  }, [playerLives]);
+  useEffect(() => {
+    localStorage.setItem('si_bullets', JSON.stringify(bullets));
+  }, [bullets]);
+  useEffect(() => {
+    localStorage.setItem('si_enemies', JSON.stringify(enemies));
+  }, [enemies]);
+  useEffect(() => {
+    localStorage.setItem('si_enemyDir', enemyDir.toString());
+  }, [enemyDir]);
+  useEffect(() => {
+    localStorage.setItem('si_enemyStep', enemyStep.toString());
+  }, [enemyStep]);
+  useEffect(() => {
+    localStorage.setItem('si_score', score.toString());
+  }, [score]);
+  useEffect(() => {
+    localStorage.setItem('si_gameOver', JSON.stringify(gameOver));
+  }, [gameOver]);
+  useEffect(() => {
+    localStorage.setItem('si_win', JSON.stringify(win));
+  }, [win]);
+  useEffect(() => {
+    localStorage.setItem('si_running', JSON.stringify(running));
+  }, [running]);
 
   // Initialize enemies
   useEffect(() => {

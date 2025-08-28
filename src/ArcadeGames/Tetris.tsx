@@ -122,13 +122,13 @@ const Tetris: React.FC<{ userid?: string; muted?: boolean }> = ({ userid: propUs
     if (gameOver) return;
     const interval = setInterval(() => {
       if (canMove(0, 1)) {
-        setCurrent((c) => ({ ...c, y: c.y + 1 }));
+        setCurrent((c: { y: number; }) => ({ ...c, y: c.y + 1 }));
         if (!muted && !isMuted()) playSound('button');
       } else {
-        setBoard((b) => merge(b, current));
+        setBoard((b: number[][]) => merge(b, current));
         // Clear lines
-        setBoard((b) => {
-          const newB = b.filter((row) => row.some((cell) => !cell));
+        setBoard((b: any[]) => {
+          const newB = b.filter((row: any[]) => row.some((cell: any) => !cell));
           const lines = ROWS - newB.length;
           if (lines > 0) {
             setScore((s) => s + lines * 100);
@@ -159,22 +159,22 @@ const Tetris: React.FC<{ userid?: string; muted?: boolean }> = ({ userid: propUs
     const handleKey = (e: KeyboardEvent) => {
       if (gameOver) return;
       if (e.key === 'ArrowLeft' && canMove(-1, 0)) {
-        setCurrent((c) => ({ ...c, x: c.x - 1 }));
+        setCurrent((c: { x: number; }) => ({ ...c, x: c.x - 1 }));
         if (!muted && !isMuted()) playSound('button');
       }
       if (e.key === 'ArrowRight' && canMove(1, 0)) {
-        setCurrent((c) => ({ ...c, x: c.x + 1 }));
+        setCurrent((c: { x: number; }) => ({ ...c, x: c.x + 1 }));
         if (!muted && !isMuted()) playSound('button');
       }
       if (e.key === 'ArrowDown' && canMove(0, 1)) {
-        setCurrent((c) => ({ ...c, y: c.y + 1 }));
+        setCurrent((c: { y: number; }) => ({ ...c, y: c.y + 1 }));
         if (!muted && !isMuted()) playSound('button');
       }
       if (e.key === 'ArrowUp') {
         // Rotate
-        const rotated = current.shape[0].map((_, i) => current.shape.map((row: number[]) => row[i]).reverse());
+        const rotated = current.shape[0].map((_: any, i: string | number) => current.shape.map((row: number[]) => row[i]).reverse());
         if (canMove(0, 0, rotated)) {
-          setCurrent((c) => ({ ...c, shape: rotated }));
+          setCurrent((c: any) => ({ ...c, shape: rotated }));
           if (!muted && !isMuted()) playSound('bonus');
         }
       }
@@ -186,7 +186,7 @@ const Tetris: React.FC<{ userid?: string; muted?: boolean }> = ({ userid: propUs
   // Render board with current piece overlaid
   const renderBoard = () => {
     // Copy board
-    const display = board.map(row => [...row]);
+    const display = board.map((row: any) => [...row]);
     // Overlay current piece
     current.shape.forEach((r: number[], dy: number) =>
       r.forEach((v, dx) => {
@@ -196,8 +196,8 @@ const Tetris: React.FC<{ userid?: string; muted?: boolean }> = ({ userid: propUs
         }
       })
     );
-    return display.map((row, y) =>
-      row.map((cell, x) => (
+    return display.map((row: any[], y: string) =>
+      row.map((cell: number, x: string) => (
         <div
           className={cell === 2 ? 'arcade-cell tetris-active' : cell ? 'arcade-cell tetris-filled' : 'arcade-cell'}
           key={x + '-' + y}

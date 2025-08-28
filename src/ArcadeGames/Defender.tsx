@@ -66,22 +66,83 @@ const Defender: React.FC<DefenderProps> = ({ userid: propUserId, muted }) => {
     }
   }, [propUserId]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [score, setScore] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
-  const [win, setWin] = useState(false);
-  const [running, setRunning] = useState(true);
+  const [score, setScore] = useState(() => {
+    const stored = localStorage.getItem('def_score');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  const [gameOver, setGameOver] = useState(() => {
+    const stored = localStorage.getItem('def_gameOver');
+    return stored ? JSON.parse(stored) : false;
+  });
+  const [win, setWin] = useState(() => {
+    const stored = localStorage.getItem('def_win');
+    return stored ? JSON.parse(stored) : false;
+  });
+  const [running, setRunning] = useState(() => {
+    const stored = localStorage.getItem('def_running');
+    return stored ? JSON.parse(stored) : true;
+  });
   const [showInstructions, setShowInstructions] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [playerX, setPlayerX] = useState(GAME_WIDTH / 2 - PLAYER_WIDTH / 2);
-  const [playerY, setPlayerY] = useState(GAME_HEIGHT - 60);
-  const [playerLives, setPlayerLives] = useState(3);
-  const [bullets, setBullets] = useState<Bullet[]>([]);
-  const [enemies, setEnemies] = useState<Enemy[]>([
-    { x: 60, y: 80, vx: ENEMY_SPEED, vy: 0, alive: true },
-    { x: 200, y: 120, vx: -ENEMY_SPEED, vy: 0, alive: true },
-    { x: 340, y: 60, vx: ENEMY_SPEED, vy: 0, alive: true },
-  ]);
-  const [humans, setHumans] = useState<Human[]>(JSON.parse(JSON.stringify(HUMANS)));
+  const [playerX, setPlayerX] = useState(() => {
+    const stored = localStorage.getItem('def_playerX');
+    return stored ? parseFloat(stored) : GAME_WIDTH / 2 - PLAYER_WIDTH / 2;
+  });
+  const [playerY, setPlayerY] = useState(() => {
+    const stored = localStorage.getItem('def_playerY');
+    return stored ? parseFloat(stored) : GAME_HEIGHT - 60;
+  });
+  const [playerLives, setPlayerLives] = useState(() => {
+    const stored = localStorage.getItem('def_playerLives');
+    return stored ? parseInt(stored, 10) : 3;
+  });
+  const [bullets, setBullets] = useState<Bullet[]>(() => {
+    const stored = localStorage.getItem('def_bullets');
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [enemies, setEnemies] = useState<Enemy[]>(() => {
+    const stored = localStorage.getItem('def_enemies');
+    return stored ? JSON.parse(stored) : [
+      { x: 60, y: 80, vx: ENEMY_SPEED, vy: 0, alive: true },
+      { x: 200, y: 120, vx: -ENEMY_SPEED, vy: 0, alive: true },
+      { x: 340, y: 60, vx: ENEMY_SPEED, vy: 0, alive: true },
+    ];
+  });
+  const [humans, setHumans] = useState<Human[]>(() => {
+    const stored = localStorage.getItem('def_humans');
+    return stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(HUMANS));
+  });
+  // Auto-save logic
+  useEffect(() => {
+    localStorage.setItem('def_playerX', playerX.toString());
+  }, [playerX]);
+  useEffect(() => {
+    localStorage.setItem('def_playerY', playerY.toString());
+  }, [playerY]);
+  useEffect(() => {
+    localStorage.setItem('def_playerLives', playerLives.toString());
+  }, [playerLives]);
+  useEffect(() => {
+    localStorage.setItem('def_bullets', JSON.stringify(bullets));
+  }, [bullets]);
+  useEffect(() => {
+    localStorage.setItem('def_enemies', JSON.stringify(enemies));
+  }, [enemies]);
+  useEffect(() => {
+    localStorage.setItem('def_humans', JSON.stringify(humans));
+  }, [humans]);
+  useEffect(() => {
+    localStorage.setItem('def_score', score.toString());
+  }, [score]);
+  useEffect(() => {
+    localStorage.setItem('def_gameOver', JSON.stringify(gameOver));
+  }, [gameOver]);
+  useEffect(() => {
+    localStorage.setItem('def_win', JSON.stringify(win));
+  }, [win]);
+  useEffect(() => {
+    localStorage.setItem('def_running', JSON.stringify(running));
+  }, [running]);
   const keys = useRef<{ [k: string]: boolean }>({});
 
   // Keyboard

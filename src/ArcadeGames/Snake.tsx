@@ -48,14 +48,63 @@ const SnakeGame: React.FC<SnakeProps> = ({ userid: propUserId, muted }) => {
     }
   }, [propUserId]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [snake, setSnake] = useState(INIT_SNAKE);
-  const [dir, setDir] = useState(INIT_DIR);
-  const [nextDir, setNextDir] = useState(INIT_DIR);
-  const [food, setFood] = useState(randomFood(INIT_SNAKE));
-  const [score, setScore] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
-  const [win, setWin] = useState(false);
-  const [running, setRunning] = useState(true);
+  const [snake, setSnake] = useState(() => {
+    const stored = localStorage.getItem('snake_snake');
+    return stored ? JSON.parse(stored) : INIT_SNAKE;
+  });
+  const [dir, setDir] = useState(() => {
+    const stored = localStorage.getItem('snake_dir');
+    return stored ? JSON.parse(stored) : INIT_DIR;
+  });
+  const [nextDir, setNextDir] = useState(() => {
+    const stored = localStorage.getItem('snake_nextDir');
+    return stored ? JSON.parse(stored) : INIT_DIR;
+  });
+  const [food, setFood] = useState(() => {
+    const stored = localStorage.getItem('snake_food');
+    return stored ? JSON.parse(stored) : randomFood(INIT_SNAKE);
+  });
+  const [score, setScore] = useState(() => {
+    const stored = localStorage.getItem('snake_score');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  const [gameOver, setGameOver] = useState(() => {
+    const stored = localStorage.getItem('snake_gameOver');
+    return stored ? JSON.parse(stored) : false;
+  });
+  const [win, setWin] = useState(() => {
+    const stored = localStorage.getItem('snake_win');
+    return stored ? JSON.parse(stored) : false;
+  });
+  const [running, setRunning] = useState(() => {
+    const stored = localStorage.getItem('snake_running');
+    return stored ? JSON.parse(stored) : true;
+  });
+  // Auto-save logic
+  useEffect(() => {
+    localStorage.setItem('snake_snake', JSON.stringify(snake));
+  }, [snake]);
+  useEffect(() => {
+    localStorage.setItem('snake_dir', JSON.stringify(dir));
+  }, [dir]);
+  useEffect(() => {
+    localStorage.setItem('snake_nextDir', JSON.stringify(nextDir));
+  }, [nextDir]);
+  useEffect(() => {
+    localStorage.setItem('snake_food', JSON.stringify(food));
+  }, [food]);
+  useEffect(() => {
+    localStorage.setItem('snake_score', score.toString());
+  }, [score]);
+  useEffect(() => {
+    localStorage.setItem('snake_gameOver', JSON.stringify(gameOver));
+  }, [gameOver]);
+  useEffect(() => {
+    localStorage.setItem('snake_win', JSON.stringify(win));
+  }, [win]);
+  useEffect(() => {
+    localStorage.setItem('snake_running', JSON.stringify(running));
+  }, [running]);
   const [showInstructions, setShowInstructions] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -84,7 +133,7 @@ const SnakeGame: React.FC<SnakeProps> = ({ userid: propUserId, muted }) => {
     if (gameOver || win) return;
     const interval = setInterval(() => {
       setDir(nextDir);
-      setSnake(prev => {
+      setSnake((prev: any[]) => {
         const head = { x: prev[0].x + nextDir.x, y: prev[0].y + nextDir.y };
         // Wall collision
         if (
@@ -92,7 +141,7 @@ const SnakeGame: React.FC<SnakeProps> = ({ userid: propUserId, muted }) => {
           head.x >= GRID_WIDTH ||
           head.y < 0 ||
           head.y >= GRID_HEIGHT ||
-          prev.some(s => s.x === head.x && s.y === head.y)
+          prev.some((s: { x: any; y: any; }) => s.x === head.x && s.y === head.y)
         ) {
           setGameOver(true);
           setRunning(false);

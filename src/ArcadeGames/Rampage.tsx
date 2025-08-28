@@ -50,13 +50,56 @@ function randomEnemy() {
 
 const Rampage: React.FC<{ userId: string }> = ({ userId }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [player, setPlayer] = useState({ x: 80, y: 320, health: MAX_HEALTH, punching: false, punchDir: 1 });
-  const [buildings, setBuildings] = useState(getBuildings());
-  const [score, setScore] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
-  const [win, setWin] = useState(false);
-  const [enemies, setEnemies] = useState([randomEnemy()]);
-  const [lastPunch, setLastPunch] = useState(0);
+  const [player, setPlayer] = useState(() => {
+    const stored = localStorage.getItem('rampage_player');
+    return stored ? JSON.parse(stored) : { x: 80, y: 320, health: MAX_HEALTH, punching: false, punchDir: 1 };
+  });
+  const [buildings, setBuildings] = useState(() => {
+    const stored = localStorage.getItem('rampage_buildings');
+    return stored ? JSON.parse(stored) : getBuildings();
+  });
+  const [score, setScore] = useState(() => {
+    const stored = localStorage.getItem('rampage_score');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  const [gameOver, setGameOver] = useState(() => {
+    const stored = localStorage.getItem('rampage_gameOver');
+    return stored ? JSON.parse(stored) : false;
+  });
+  const [win, setWin] = useState(() => {
+    const stored = localStorage.getItem('rampage_win');
+    return stored ? JSON.parse(stored) : false;
+  });
+  const [enemies, setEnemies] = useState(() => {
+    const stored = localStorage.getItem('rampage_enemies');
+    return stored ? JSON.parse(stored) : [randomEnemy()];
+  });
+  const [lastPunch, setLastPunch] = useState(() => {
+    const stored = localStorage.getItem('rampage_lastPunch');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  // Auto-save logic
+  useEffect(() => {
+    localStorage.setItem('rampage_player', JSON.stringify(player));
+  }, [player]);
+  useEffect(() => {
+    localStorage.setItem('rampage_buildings', JSON.stringify(buildings));
+  }, [buildings]);
+  useEffect(() => {
+    localStorage.setItem('rampage_score', score.toString());
+  }, [score]);
+  useEffect(() => {
+    localStorage.setItem('rampage_gameOver', JSON.stringify(gameOver));
+  }, [gameOver]);
+  useEffect(() => {
+    localStorage.setItem('rampage_win', JSON.stringify(win));
+  }, [win]);
+  useEffect(() => {
+    localStorage.setItem('rampage_enemies', JSON.stringify(enemies));
+  }, [enemies]);
+  useEffect(() => {
+    localStorage.setItem('rampage_lastPunch', lastPunch.toString());
+  }, [lastPunch]);
 
   // Draw
   useEffect(() => {
@@ -67,7 +110,7 @@ const Rampage: React.FC<{ userId: string }> = ({ userId }) => {
     ctx.fillStyle = '#7ec0ee';
     ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
     // Draw buildings
-    buildings.forEach(b => {
+  buildings.forEach((b: any) => {
       ctx.save();
       ctx.globalAlpha = b.destroyed ? 0.2 : 1;
       ctx.fillStyle = b.destroyed ? '#bbb' : '#444';
@@ -99,7 +142,7 @@ const Rampage: React.FC<{ userId: string }> = ({ userId }) => {
       ctx.restore();
     }
     // Draw enemies (helicopters)
-    enemies.forEach(e => {
+  enemies.forEach((e: any) => {
       if (!e.alive) return;
       ctx.save();
       ctx.translate(e.x, e.y);
@@ -162,13 +205,13 @@ const Rampage: React.FC<{ userId: string }> = ({ userId }) => {
       if (e.key === 'ArrowLeft' || e.key === 'a') dx = -PLAYER_SPEED;
       else if (e.key === 'ArrowRight' || e.key === 'd') dx = PLAYER_SPEED;
       if (dx !== 0) {
-        setPlayer(p => ({ ...p, x: Math.max(PLAYER_SIZE / 2, Math.min(GAME_WIDTH - PLAYER_SIZE / 2, p.x + dx)), punchDir: dx > 0 ? 1 : -1 }));
+  setPlayer((p: any) => ({ ...p, x: Math.max(PLAYER_SIZE / 2, Math.min(GAME_WIDTH - PLAYER_SIZE / 2, p.x + dx)), punchDir: dx > 0 ? 1 : -1 }));
       }
       if (e.key === ' ' || e.key === 'z') {
         if (Date.now() - lastPunch > PUNCH_COOLDOWN) {
-          setPlayer(p => ({ ...p, punching: true }));
+    setPlayer((p: any) => ({ ...p, punching: true }));
           setLastPunch(Date.now());
-          setTimeout(() => setPlayer(p => ({ ...p, punching: false })), 120);
+    setTimeout(() => setPlayer((p: any) => ({ ...p, punching: false })), 120);
         }
       }
     };
@@ -182,7 +225,7 @@ const Rampage: React.FC<{ userId: string }> = ({ userId }) => {
     const interval = setInterval(() => {
       // Punch logic
       if (player.punching) {
-        setBuildings(bs => bs.map(b => {
+  setBuildings((bs: any[]) => bs.map((b: any) => {
           if (!b.destroyed && Math.abs(player.x + player.punchDir * PUNCH_RANGE - (b.x + b.w / 2)) < b.w / 2 && Math.abs(player.y - (b.y + b.h / 2)) < b.h / 2) {
             setScore(s => s + 100);
             return { ...b, destroyed: true };
@@ -191,7 +234,7 @@ const Rampage: React.FC<{ userId: string }> = ({ userId }) => {
         }));
       }
       // Enemy logic
-      setEnemies(es => es.map(e => {
+  setEnemies((es: any[]) => es.map((e: any) => {
         if (!e.alive) return e;
         let nx = e.x + e.vx;
         let ny = e.y + e.vy;
@@ -202,20 +245,20 @@ const Rampage: React.FC<{ userId: string }> = ({ userId }) => {
         }
         // Collision with player
         if (Math.abs(nx - player.x) < (PLAYER_SIZE + ENEMY_SIZE) / 2 && Math.abs(ny - player.y) < (PLAYER_SIZE + ENEMY_SIZE) / 2) {
-          setPlayer(p => ({ ...p, health: Math.max(0, p.health - 18) }));
+          setPlayer((p: any) => ({ ...p, health: Math.max(0, p.health - 18) }));
         }
         return { ...e, x: nx, y: ny };
       }));
       // Add new enemies
       if (Math.random() < 0.04 && enemies.length < 6) {
-        setEnemies(es => [...es, randomEnemy()]);
+  setEnemies((es: any[]) => [...es, randomEnemy()]);
       }
       // Win/lose
       if (player.health <= 0) {
         setGameOver(true);
         submitScoreSupabase('Rampage', userId, score);
       }
-      if (buildings.every(b => b.destroyed)) {
+  if (buildings.every((b: any) => b.destroyed)) {
         setWin(true);
         submitScoreSupabase('Rampage', userId, score + 500);
         setScore(s => s + 500);

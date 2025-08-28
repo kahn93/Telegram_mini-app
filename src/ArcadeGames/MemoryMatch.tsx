@@ -120,6 +120,10 @@ const MemoryMatch: React.FC<MemoryMatchProps> = ({ onScore, userid: propUserId, 
     opacity: 0.10 + Math.random() * 0.18,
   }));
 
+    function handleFlip(idx: number): void {
+        throw new Error('Function not implemented.');
+    }
+
   return (
     <div
       className={styles.memoryMatchGame}

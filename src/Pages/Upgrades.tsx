@@ -45,7 +45,7 @@ const Upgrades: React.FC<UpgradesProps> = ({ coins }) => {
 	}, [upgrades]);
 
 	const onPurchase = (key: string) => {
-		setUpgrades((prev) => {
+		setUpgrades((prev: { [x: string]: number; }) => {
 			const level = prev[key] || 0;
 			const price = UPGRADE_DEFS.find((u) => u.key === key)!.basePrice * Math.pow(2, level);
 			if (coins < price) return prev;

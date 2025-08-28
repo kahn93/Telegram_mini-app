@@ -44,13 +44,13 @@ export default function LayoutEditor() {
     setItems(config.items);
   }, [page, config.items]);
 
-  const handleDrag = (idx, e, data) => {
+  const handleDrag = (idx: number, e: any, data: { x: any; y: any; }) => {
     setItems(items => items.map((item, i) =>
       i === idx ? { ...item, x: data.x, y: data.y } : item
     ));
   };
 
-  const handleResize = (idx, deltaW, deltaH) => {
+  const handleResize = (idx: number, deltaW: number, deltaH: number) => {
     setItems(items => items.map((item, i) =>
       i === idx ? { ...item, width: Math.max(40, item.width + deltaW), height: Math.max(30, item.height + deltaH) } : item
     ));
@@ -78,7 +78,7 @@ export default function LayoutEditor() {
         <Draggable
           key={item.id}
           position={{ x: item.x, y: item.y }}
-          onDrag={(e, data) => handleDrag(idx, e, data)}
+          onDrag={(e: any, data: any) => handleDrag(idx, e, data)}
         >
           <div
             style={{
@@ -107,7 +107,7 @@ export default function LayoutEditor() {
                 e.stopPropagation();
                 const startX = e.clientX;
                 const startY = e.clientY;
-                const move = (ev) => {
+                const move = (ev: { clientX: number; clientY: number; }) => {
                   handleResize(idx, ev.clientX - startX, ev.clientY - startY);
                 };
                 const up = () => {

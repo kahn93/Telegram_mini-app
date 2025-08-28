@@ -46,13 +46,50 @@ const ENEMY_TYPES = [
 
 const Qbert: React.FC<{ userId: string }> = ({ userId }) => {
   // State declarations should come first
-  const [tiles, setTiles] = useState(getPyramidTiles());
-  const [player, setPlayer] = useState({ row: 0, col: 0, jumping: false });
-  const [score, setScore] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
+  const [tiles, setTiles] = useState(() => {
+    const stored = localStorage.getItem('qbert_tiles');
+    return stored ? JSON.parse(stored) : getPyramidTiles();
+  });
+  const [player, setPlayer] = useState(() => {
+    const stored = localStorage.getItem('qbert_player');
+    return stored ? JSON.parse(stored) : { row: 0, col: 0, jumping: false };
+  });
+  const [score, setScore] = useState(() => {
+    const stored = localStorage.getItem('qbert_score');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  const [gameOver, setGameOver] = useState(() => {
+    const stored = localStorage.getItem('qbert_gameOver');
+    return stored ? JSON.parse(stored) : false;
+  });
   type Enemy = { row: number; col: number; type: { color: string; points: number } };
-  const [enemies, setEnemies] = useState<Enemy[]>([]);
-  const [win, setWin] = useState(false);
+  const [enemies, setEnemies] = useState<Enemy[]>(() => {
+    const stored = localStorage.getItem('qbert_enemies');
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [win, setWin] = useState(() => {
+    const stored = localStorage.getItem('qbert_win');
+    return stored ? JSON.parse(stored) : false;
+  });
+  // Auto-save logic
+  useEffect(() => {
+    localStorage.setItem('qbert_tiles', JSON.stringify(tiles));
+  }, [tiles]);
+  useEffect(() => {
+    localStorage.setItem('qbert_player', JSON.stringify(player));
+  }, [player]);
+  useEffect(() => {
+    localStorage.setItem('qbert_score', score.toString());
+  }, [score]);
+  useEffect(() => {
+    localStorage.setItem('qbert_gameOver', JSON.stringify(gameOver));
+  }, [gameOver]);
+  useEffect(() => {
+    localStorage.setItem('qbert_enemies', JSON.stringify(enemies));
+  }, [enemies]);
+  useEffect(() => {
+    localStorage.setItem('qbert_win', JSON.stringify(win));
+  }, [win]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Draw the game
@@ -61,7 +98,7 @@ const Qbert: React.FC<{ userId: string }> = ({ userId }) => {
     if (!ctx) return;
     ctx.clearRect(0, 0, 480, 400);
     // Draw pyramid
-    tiles.forEach(tile => {
+    tiles.forEach((tile: { row: number; col: number; color: string | number; }) => {
       const { x, y } = getTileCenter(tile.row, tile.col);
       ctx.save();
       ctx.beginPath();
@@ -151,11 +188,11 @@ const Qbert: React.FC<{ userId: string }> = ({ userId }) => {
         const newRow = (player as Player).row + dRow;
         const newCol = (player as Player).col + dCol;
         if (isOnPyramid(newRow, newCol)) {
-          setPlayer(p => ({ ...p, jumping: true }));
-          setPlayer(p => ({ ...p, jumping: true }));
+          setPlayer((p: any) => ({ ...p, jumping: true }));
+          setPlayer((p: any) => ({ ...p, jumping: true }));
           setTimeout(() => {
             setPlayer({ row: newRow, col: newCol, jumping: false });
-            setTiles(ts => ts.map(tile =>
+            setTiles((ts: any[]) => ts.map((tile: { row: number; col: number; color: number; }) =>
               tile.row === newRow && tile.col === newCol && tile.color < COLORS.length - 1
                 ? { ...tile, color: tile.color + 1 }
                 : tile
@@ -213,7 +250,7 @@ const Qbert: React.FC<{ userId: string }> = ({ userId }) => {
 
   // Win condition
   useEffect(() => {
-    if (tiles.every(tile => tile.color === COLORS.length - 1)) {
+    if (tiles.every((tile: { color: number; }) => tile.color === COLORS.length - 1)) {
       setWin(true);
       submitScoreSupabase('Qbert', userId, score + 500);
       setScore(s => s + 500);

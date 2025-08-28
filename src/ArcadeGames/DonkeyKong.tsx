@@ -57,28 +57,65 @@ const DonkeyKong: React.FC<DonkeyKongProps> = ({ userid: propUserId, muted }) =>
     }
   }, [propUserId]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [score, setScore] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
-  const [win, setWin] = useState(false);
-  const [running, setRunning] = useState(true);
+  const [score, setScore] = useState(() => {
+    const stored = localStorage.getItem('dk_score');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  const [gameOver, setGameOver] = useState(() => {
+    const stored = localStorage.getItem('dk_gameOver');
+    return stored ? JSON.parse(stored) : false;
+  });
+  const [win, setWin] = useState(() => {
+    const stored = localStorage.getItem('dk_win');
+    return stored ? JSON.parse(stored) : false;
+  });
+  const [running, setRunning] = useState(() => {
+    const stored = localStorage.getItem('dk_running');
+    return stored ? JSON.parse(stored) : true;
+  });
   const [showInstructions, setShowInstructions] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   // Player state
-  const [player, setPlayer] = useState({
-    x: 40,
-    y: LEVELS[0].y - PLAYER_HEIGHT,
-    vx: 0,
-    vy: 0,
-    onGround: true,
-    climbing: false,
-    dir: 1, // 1: right, -1: left
-    lives: 3,
+  const [player, setPlayer] = useState(() => {
+    const stored = localStorage.getItem('dk_player');
+    return stored ? JSON.parse(stored) : {
+      x: 40,
+      y: LEVELS[0].y - PLAYER_HEIGHT,
+      vx: 0,
+      vy: 0,
+      onGround: true,
+      climbing: false,
+      dir: 1,
+      lives: 3,
+    };
   });
   // Barrel type
   type Barrel = { x: number; y: number; vx: number; vy: number; remove?: boolean };
   // Barrels
-  const [barrels, setBarrels] = useState<Barrel[]>([]);
+  const [barrels, setBarrels] = useState<Barrel[]>(() => {
+    const stored = localStorage.getItem('dk_barrels');
+    return stored ? JSON.parse(stored) : [];
+  });
+  // Auto-save logic
+  useEffect(() => {
+    localStorage.setItem('dk_player', JSON.stringify(player));
+  }, [player]);
+  useEffect(() => {
+    localStorage.setItem('dk_barrels', JSON.stringify(barrels));
+  }, [barrels]);
+  useEffect(() => {
+    localStorage.setItem('dk_score', score.toString());
+  }, [score]);
+  useEffect(() => {
+    localStorage.setItem('dk_gameOver', JSON.stringify(gameOver));
+  }, [gameOver]);
+  useEffect(() => {
+    localStorage.setItem('dk_win', JSON.stringify(win));
+  }, [win]);
+  useEffect(() => {
+    localStorage.setItem('dk_running', JSON.stringify(running));
+  }, [running]);
   // Key state
   const keys = useRef<{ [k: string]: boolean }>({});
   // Barrel spawn timer
@@ -243,7 +280,7 @@ const DonkeyKong: React.FC<DonkeyKongProps> = ({ userid: propUserId, muted }) =>
         )
       ) {
         setScore((s) => Math.max(0, s - 100));
-        setPlayer((pl) => ({ ...pl, lives: pl.lives - 1 }));
+        setPlayer((pl: { lives: number; }) => ({ ...pl, lives: pl.lives - 1 }));
         setGameOver(true);
         setRunning(false);
         setShowGameOverEffect(true);

@@ -25,13 +25,56 @@ const sprites = {
 
 const StreetFighter: React.FC<{ userId: string }> = ({ userId }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [player, setPlayer] = useState({ x: 100, y: GROUND_Y, vx: 0, vy: 0, health: MAX_HEALTH, attacking: false, facing: 1, onGround: true });
-  const [enemy, setEnemy] = useState({ x: 340, y: GROUND_Y, vx: 0, vy: 0, health: MAX_HEALTH, attacking: false, facing: -1, onGround: true });
-  const [score, setScore] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
-  const [win, setWin] = useState(false);
-  const [lastAttack, setLastAttack] = useState(0);
-  const [lastEnemyAttack, setLastEnemyAttack] = useState(0);
+  const [player, setPlayer] = useState(() => {
+    const stored = localStorage.getItem('sf_player');
+    return stored ? JSON.parse(stored) : { x: 100, y: GROUND_Y, vx: 0, vy: 0, health: MAX_HEALTH, attacking: false, facing: 1, onGround: true };
+  });
+  const [enemy, setEnemy] = useState(() => {
+    const stored = localStorage.getItem('sf_enemy');
+    return stored ? JSON.parse(stored) : { x: 340, y: GROUND_Y, vx: 0, vy: 0, health: MAX_HEALTH, attacking: false, facing: -1, onGround: true };
+  });
+  const [score, setScore] = useState(() => {
+    const stored = localStorage.getItem('sf_score');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  const [gameOver, setGameOver] = useState(() => {
+    const stored = localStorage.getItem('sf_gameOver');
+    return stored ? JSON.parse(stored) : false;
+  });
+  const [win, setWin] = useState(() => {
+    const stored = localStorage.getItem('sf_win');
+    return stored ? JSON.parse(stored) : false;
+  });
+  const [lastAttack, setLastAttack] = useState(() => {
+    const stored = localStorage.getItem('sf_lastAttack');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  const [lastEnemyAttack, setLastEnemyAttack] = useState(() => {
+    const stored = localStorage.getItem('sf_lastEnemyAttack');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  // Auto-save logic
+  useEffect(() => {
+    localStorage.setItem('sf_player', JSON.stringify(player));
+  }, [player]);
+  useEffect(() => {
+    localStorage.setItem('sf_enemy', JSON.stringify(enemy));
+  }, [enemy]);
+  useEffect(() => {
+    localStorage.setItem('sf_score', score.toString());
+  }, [score]);
+  useEffect(() => {
+    localStorage.setItem('sf_gameOver', JSON.stringify(gameOver));
+  }, [gameOver]);
+  useEffect(() => {
+    localStorage.setItem('sf_win', JSON.stringify(win));
+  }, [win]);
+  useEffect(() => {
+    localStorage.setItem('sf_lastAttack', lastAttack.toString());
+  }, [lastAttack]);
+  useEffect(() => {
+    localStorage.setItem('sf_lastEnemyAttack', lastEnemyAttack.toString());
+  }, [lastEnemyAttack]);
 
   // Draw
   useEffect(() => {
@@ -141,16 +184,16 @@ const StreetFighter: React.FC<{ userId: string }> = ({ userId }) => {
       if (e.key === 'ArrowLeft' || e.key === 'a') dx = -PLAYER_SPEED;
       else if (e.key === 'ArrowRight' || e.key === 'd') dx = PLAYER_SPEED;
       if (dx !== 0) {
-        setPlayer(p => ({ ...p, x: Math.max(PLAYER_SIZE / 2, Math.min(GAME_WIDTH - PLAYER_SIZE / 2, p.x + dx)), facing: dx > 0 ? 1 : -1 }));
+  setPlayer((p: any) => ({ ...p, x: Math.max(PLAYER_SIZE / 2, Math.min(GAME_WIDTH - PLAYER_SIZE / 2, p.x + dx)), facing: dx > 0 ? 1 : -1 }));
       }
       if ((e.key === 'ArrowUp' || e.key === 'w') && player.onGround) {
-        setPlayer(p => ({ ...p, vy: JUMP_VEL, onGround: false }));
+  setPlayer((p: any) => ({ ...p, vy: JUMP_VEL, onGround: false }));
       }
       if (e.key === ' ' || e.key === 'z') {
         if (Date.now() - lastAttack > ATTACK_COOLDOWN) {
-          setPlayer(p => ({ ...p, attacking: true }));
+          setPlayer((p: any) => ({ ...p, attacking: true }));
           setLastAttack(Date.now());
-          setTimeout(() => setPlayer(p => ({ ...p, attacking: false })), 120);
+          setTimeout(() => setPlayer((p: any) => ({ ...p, attacking: false })), 120);
         }
       }
     };
@@ -163,7 +206,7 @@ const StreetFighter: React.FC<{ userId: string }> = ({ userId }) => {
     if (gameOver || win) return;
     const interval = setInterval(() => {
       // Player jump/gravity
-      setPlayer(p => {
+  setPlayer((p: any) => {
         let vy = p.vy + GRAVITY;
         let y = p.y + vy;
         const onGround = y >= GROUND_Y;
@@ -171,7 +214,7 @@ const StreetFighter: React.FC<{ userId: string }> = ({ userId }) => {
         return { ...p, y, vy, onGround };
       });
       // Enemy AI
-      setEnemy(e => {
+  setEnemy((e: any) => {
         const dx = player.x > e.x ? PLAYER_SPEED : -PLAYER_SPEED;
         const facing = dx > 0 ? 1 : -1;
         const vx = dx;
@@ -186,18 +229,18 @@ const StreetFighter: React.FC<{ userId: string }> = ({ userId }) => {
         if (Math.abs(player.x - e.x) < ATTACK_RANGE && Date.now() - lastEnemyAttack > ATTACK_COOLDOWN) {
           attacking = true;
           setLastEnemyAttack(Date.now());
-          setTimeout(() => setEnemy(en => ({ ...en, attacking: false })), 120);
+          setTimeout(() => setEnemy((en: any) => ({ ...en, attacking: false })), 120);
         }
         return { ...e, x: Math.max(ENEMY_SIZE / 2, Math.min(GAME_WIDTH - ENEMY_SIZE / 2, e.x + vx)), y, vy, onGround, facing, attacking };
       });
       // Player attack logic
       if (player.attacking && Math.abs(player.x + player.facing * ATTACK_RANGE - enemy.x) < ENEMY_SIZE / 2 && Math.abs(player.y - enemy.y) < ENEMY_SIZE / 2) {
-        setEnemy(e => ({ ...e, health: Math.max(0, e.health - 18) }));
+  setEnemy((e: any) => ({ ...e, health: Math.max(0, e.health - 18) }));
         setScore(s => s + 200);
       }
       // Enemy attack logic
       if (enemy.attacking && Math.abs(enemy.x + enemy.facing * ATTACK_RANGE - player.x) < PLAYER_SIZE / 2 && Math.abs(enemy.y - player.y) < PLAYER_SIZE / 2) {
-        setPlayer(p => ({ ...p, health: Math.max(0, p.health - 18) }));
+  setPlayer((p: any) => ({ ...p, health: Math.max(0, p.health - 18) }));
       }
       // Win/lose
       if (player.health <= 0) {
